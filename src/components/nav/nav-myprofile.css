@@ -1,0 +1,39 @@
+.maincontainer{
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.containerimagem {
+    width: 2.5rem; 
+    height: 2.5rem; 
+    margin-right: 2.0rem; 
+    margin-bottom: 10px;
+}
+
+.containerimagem img {
+    border-radius: 100%;
+    max-width: 60px;
+    height: 60px;
+}
+
+.containerfinal{
+    flex: 1;
+    min-width: 0;
+
+}
+
+.textoarroba{
+    font-size: 14px;
+    line-height: 14px;
+    margin-top: 2px;
+    color: rgb(114, 114, 114);
+}
+
+.namelink{
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}

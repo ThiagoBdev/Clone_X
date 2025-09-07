@@ -1,0 +1,14 @@
+
+
+.Buttonstyle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    background-color: white;
+    color: black;
+    font-weight: 700;
+    border-radius: 1.5rem;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
