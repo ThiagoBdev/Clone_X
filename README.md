@@ -1,4 +1,4 @@
-# Clone Twitter
+# Clone X
 
 Projeto feito com React e TypeScript. Futuramente terá integração com Python.
 
