@@ -5,15 +5,41 @@ import { useState } from "react";
 import { Input } from "../ui/input";
 import { faHeart } from "@fortawesome/free-solid-svg-icons/faHeart";
 import { Button } from "../ui/button";
+import api from "@/lib/api";
 
-export const SigninForm = () => {
+interface SigninFormProps {
+  onSuccess: () => void; // Callback para redirecionamento após sucesso
+}
+
+interface TokenResponse {
+  access: string;
+  refresh?: string; // Opcional, dependendo da configuração do JWT
+}
+
+export const SigninForm = ({ onSuccess }: SigninFormProps) => {
     const router = useRouter();
     const [emailField, setEmailField] = useState("");
     const [passwordField, setPasswordField] = useState("");
+    const [error, setError] = useState<string | null>(null);
 
-    const handleEnterButton = () => {
-        router.replace("/home");
-    }
+const handleEnterButton = async () => {
+        try {
+            setError(null); // Limpa erro anterior
+            const response = await api.post<TokenResponse>('token/', {
+                username: emailField, // Assumindo que o campo email é usado como username
+                password: passwordField,
+            });
+            localStorage.setItem('token', response.data.access); // Salva o token
+            if (onSuccess) {
+                onSuccess(); // Chama o callback se existir
+            } else {
+                router.push('/home'); // Fallback para redirecionamento
+            }
+        } catch (err) {
+            setError('Usuário ou senha inválidos. Tente novamente.');
+            console.error('Login failed', err);
+        }
+    };
 
     return (
         <>
@@ -24,3 +50,4 @@ export const SigninForm = () => {
         </>
     )
 }
+
