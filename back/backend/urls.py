@@ -20,11 +20,12 @@ from django.urls import path, include
 from django.views.static import serve  
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from users.views import UserViewSet
-from django.conf import settings  # Adicione esta importação  
+from users.views import UserViewSet, TweetViewSet
+from django.conf import settings  
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet)  
+router.register(r'tweets', TweetViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

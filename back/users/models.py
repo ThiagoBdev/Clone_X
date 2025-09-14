@@ -17,13 +17,13 @@ class Profile(models.Model):
 
 class Tweet(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tweets')
-    text = models.TextField(max_length=280)  # Corresponde a 'body'
+    text = models.TextField(max_length=280)
     image = models.ImageField(upload_to='tweets/', blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)  # Corresponde a 'dataPost'
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     likes = models.ManyToManyField(User, related_name='liked_tweets', blank=True)
     retweets = models.ManyToManyField(User, related_name='retweeted_tweets', blank=True)
-    comments = models.ManyToManyField('self', symmetrical=False, blank=True, related_name='commented_on')  # Novo campo
+    comments = models.ManyToManyField('self', symmetrical=False, blank=True, related_name='commented_on')
 
     class Meta:
         ordering = ['-created_at']
@@ -34,7 +34,6 @@ class Tweet(models.Model):
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        # Gera um slug único baseado no username
         base_slug = slugify(instance.username)
         slug = base_slug
         counter = 1
