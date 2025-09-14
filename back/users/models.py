@@ -2,6 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.text import slugify
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -30,8 +31,14 @@ class Tweet(models.Model):
     def __str__(self):
         return f"{self.user.username}: {self.text[:50]}"
 
-
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        Profile.objects.create(user=instance)
+        # Gera um slug único baseado no username
+        base_slug = slugify(instance.username)
+        slug = base_slug
+        counter = 1
+        while Profile.objects.filter(slug=slug).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        Profile.objects.create(user=instance, slug=slug)

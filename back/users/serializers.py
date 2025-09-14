@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Tweet, Profile, Follow
+from .models import Tweet, Profile
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
