@@ -1,0 +1,55 @@
+
+
+.ContainerPensando {
+  display: flex;
+  gap: 1.5rem;             
+  padding-left: 2rem;      
+  padding-right: 2rem;
+  padding-top: 1.5rem;     
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #111827; 
+}
+
+.ContainerEnquadro {
+  width: 3rem;          
+  height: 3rem;
+  border-radius: 9999px;   
+}
+
+.ContainerSimples {
+  flex: 1;                  
+}
+
+.CampoEditavel {
+  min-height: 3.5rem;  
+  outline: none;       
+  font-size: 1.125rem; 
+  color: #ffffff; 
+}
+
+.CampoEditavel:empty:before {
+  content: "O que está acontecendo?";
+  color: #6B7280; 
+  pointer-events: none; 
+}
+
+
+.ContainerDaImagem {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;            
+  margin-top: 0.5rem;             
+}
+
+.ContainerDoIconeImg {
+  cursor: pointer;        
+}
+
+.ContainerTamanho {
+  width: 1.5rem;            
+  height: 1.5rem;
+}
+
+.ContainerLargura {
+  width: 7rem;              
+}

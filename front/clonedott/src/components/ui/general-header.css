@@ -1,0 +1,29 @@
+
+.containeT1 {
+    display: flex;         
+    gap: 1rem;              
+    align-items: center;    
+    padding: 1.5rem;        
+}
+
+
+.containerT2 {
+    display: flex;                
+    justify-content: center;   
+    align-items: center;         
+    border: 2px solid #6b7280;  
+    width: 3rem;                    
+    height: 3rem;                   
+    border-radius: 9999px;          
+}
+
+
+.containerT3 {
+    width: 1.5rem;  
+    height: 1.5rem; 
+}
+
+
+.containerT4 {
+    flex: 1;    
+}

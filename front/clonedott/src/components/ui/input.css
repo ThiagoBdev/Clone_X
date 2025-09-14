@@ -1,0 +1,31 @@
+.container {
+    display: flex;
+    justify-items: center;
+    height: 3.5rem;
+    border-radius: 1.5rem;
+    border-width: 2px;
+    border-color: #374151;        
+}
+
+.input-box {
+    flex: 1;
+    outline: none;
+    height: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 20px;
+    color: #ffffff;
+    background-color: transparent;
+    width: 100%;
+
+}
+
+.input-box:focus{
+    border-color: #ffffff;
+}
+
+.iconstyle {
+    color: #374151;
+    cursor: pointer;
+    
+}

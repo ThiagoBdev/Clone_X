@@ -1,0 +1,33 @@
+.containerheader{
+    display: flex;
+    justify-content: space-between;
+    padding: 40px;
+    border: 1px solid gray;
+}
+
+.Logodesktop{
+    display: none;
+}
+
+.Containerinicial{
+    display: flex;
+} 
+
+.iconBar{
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .Logodesktop{
+        display: flex;
+    }
+
+    .Containerinicial{
+        display: none;
+    }
+
+    .iconBar{
+        display: flex;
+        cursor: pointer;
+    } 
+}

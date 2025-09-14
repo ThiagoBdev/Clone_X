@@ -1,0 +1,27 @@
+.container{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    padding-bottom: 0.75rem;
+    padding-top: 0.75rem;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.container:hover{
+    opacity: 1;
+}
+
+.icon1{
+    vertical-align: middle;
+    width: 30px;
+    height: 30px;
+
+}
+
+
+.container2{
+    font-size: 1.125rem;
+    line-height: 1;
+}

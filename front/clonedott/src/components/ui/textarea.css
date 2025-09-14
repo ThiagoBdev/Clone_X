@@ -1,0 +1,23 @@
+
+.containerI1 {
+    display: flex;                  
+    align-items: center;             
+    border: 2px solid #374151;       
+    border-radius: 1.5rem;          
+}
+
+
+.containerI1:has(:focus) {
+    border-color: #ffffff;           
+}
+
+
+.containerI2 {
+    flex: 1;                       
+    outline: none;                  
+    background-color: transparent;  
+    height: 100%;                  
+    padding: 1.25rem;
+    border: none;                  
+    resize: none;                  
+}
