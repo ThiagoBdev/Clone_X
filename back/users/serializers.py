@@ -3,9 +3,26 @@ from django.contrib.auth.models import User
 from .models import Tweet, Profile
 
 class ProfileSerializer(serializers.ModelSerializer):
+    avatar = serializers.ImageField(required=False, allow_empty_file=True, allow_null=True)
+    cover = serializers.ImageField(required=False, allow_empty_file=True, allow_null=True)
+
     class Meta:
         model = Profile
         fields = ['slug', 'avatar', 'cover', 'bio', 'link']
+
+    def update(self, instance, validated_data):
+        instance.bio = validated_data.get('bio', instance.bio)
+        instance.link = validated_data.get('link', instance.link)
+        
+        request = self.context.get('request')
+        if request and hasattr(request, 'FILES'):
+            if 'avatar' in request.FILES:
+                instance.avatar = request.FILES.get('avatar')
+            if 'cover' in request.FILES:
+                instance.cover = request.FILES.get('cover')
+        
+        instance.save()
+        return instance
 
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()
@@ -13,35 +30,31 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile']
+        extra_kwargs = {'password': {'write_only': True}}
 
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('profile', {})
+        
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
-
-        # Atualizar senha, se fornecida
-        password = validated_data.get('password')
-        if password:
-            instance.set_password(password)
-
+        if validated_data.get('password'):
+            instance.set_password(validated_data.get('password'))
         instance.save()
 
-        # Atualizar perfil
-        profile = instance.profile
-        profile.avatar = profile_data.get('avatar', profile.avatar)
-        profile.cover = profile_data.get('cover', profile.cover)
-        profile.bio = profile_data.get('bio', profile.bio)
-        profile.link = profile_data.get('link', profile.link)
-        profile.save()
+        profile, created = Profile.objects.get_or_create(user=instance)
+        
+        profile_serializer = ProfileSerializer(profile, data=profile_data, partial=True, context={'request': self.context.get('request')})
+        if profile_serializer.is_valid():
+            profile_serializer.save()
+        else:
+            raise serializers.ValidationError(profile_serializer.errors)
 
         return instance
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        # Garantir que first_name e last_name sejam strings
         representation['first_name'] = str(representation.get('first_name', ''))
         representation['last_name'] = str(representation.get('last_name', ''))
-        # Garantir que os campos do profile sejam strings, se aplicável
         if 'profile' in representation:
             representation['profile']['bio'] = str(representation['profile'].get('bio', ''))
             representation['profile']['link'] = str(representation['profile'].get('link', ''))
@@ -53,7 +66,7 @@ class TweetSerializer(serializers.ModelSerializer):
     retweets_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
     liked = serializers.SerializerMethodField()
-    retweeted = serializers.SerializerMethodField()  # Corrigido de SerialMethodField para SerializerMethodField
+    retweeted = serializers.SerializerMethodField()
 
     class Meta:
         model = Tweet

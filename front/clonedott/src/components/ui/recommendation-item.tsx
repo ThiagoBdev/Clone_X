@@ -1,50 +1,59 @@
 import { User } from "@/types/user";
-import "./recommendation.css"
 import Link from "next/link";
+import "./recommendation.css";
 import { Button } from "./button";
 import { useState } from "react";
 
 type Props = {
-    user: User;
-}
+  user: User;
+};
+
+export const RecommendationItem = ({ user }: Props) => {
+  const displayName = user.first_name || user.username || "Usuário Desconhecido";
+  const displaySlug = user.profile?.slug || user.slug || "sem-slug";
+  const displayAvatar = user.profile?.avatar || user.avatar || "https://api.dicebear.com/7.x/bottts/png?size=40";
+
+  const [following, setFollowing] = useState(false);
+  const handleFollowButton = () => {
+    setFollowing(true);
+  };
 
 
-export const RecommendationItem = ({user}: Props) => {
-    const [following, setFollowing] = useState(false);
-    const handleFollowButton = () => {
-        setFollowing(true)
-    }
-
-    return (
-        <div className="containerRecommendation">
-            <div className="second-container-recommendation">
-                <Link href={`/${user.slug}`}>
-                    <img  src={user.avatar} alt={user.name} />
-                </Link>
-            </div>
-            <div className="containerInfo">
-                <Link href={`/${user.slug}`} className="secondInfo">
-                    {user.name}
-                </Link>
-                <div className="containerSlug">@{user.slug}</div>
-            </div>
-            <div className="containerbutton">
-                {!following &&
-                    <Button label="Seguir" onClick={handleFollowButton} size={3} />
-                }
-            </div>
-        </div>
-    );
-}
-
+  return (
+    <div className="maincontainer">
+      <div className="containerimagem">
+        <Link href={`/${displaySlug}`}>
+          <img
+            src={displayAvatar}
+            alt={displayName}
+          />
+        </Link>
+      </div>
+      <div className="containerfinal">
+        <Link href={`/${displaySlug}`} className="namelink">
+          {displayName}
+        </Link>
+        <div className="textoarroba namelink">@{displaySlug}</div>
+      </div>
+      <div className="containerbutton">
+        {!following && (
+          <Button label="Seguir" onClick={handleFollowButton} size={3} />
+        )}
+      </div>
+    </div>
+  );
+};
 
 export const RecommendationItemSkeleton = () => {
-    return (
-        <div className="containerRecommendation pulse">
-            <div className="containerInfo">
-                <div className="InfoNone"></div>
-                <div className="InfoNone"></div>
-            </div>
-        </div>
-    )
-}
+  return (
+    <div className="maincontainer">
+      <div className="containerimagem">
+        <div className="skeleton" style={{ width: '2.5rem', height: '2.5rem', borderRadius: '50%' }} />
+      </div>
+      <div className="containerfinal">
+        <div className="skeleton" style={{ width: '100px', height: '16px' }} />
+        <div className="skeleton" style={{ width: '80px', height: '14px', marginTop: '2px' }} />
+      </div>
+    </div>
+  );
+};
