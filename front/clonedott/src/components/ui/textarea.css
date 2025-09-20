@@ -15,9 +15,10 @@
 .containerI2 {
     flex: 1;                       
     outline: none;                  
-    background-color: transparent;  
     height: 100%;                  
     padding: 1.25rem;
     border: none;                  
-    resize: none;                  
+    resize: none;
+    color: #ffffff;
+    background-color: transparent;                  
 }
