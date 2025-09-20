@@ -13,6 +13,11 @@ interface RegisterResponse {
   email?: string;
 }
 
+interface TokenResponse {
+  access: string;
+  refresh: string;
+}
+
 export const SignupForm = () => {
   const router = useRouter();
   const [nameField, setNameField] = useState("");
@@ -21,7 +26,6 @@ export const SignupForm = () => {
   const [error, setError] = useState<string | null>(null);
 
   const handleEnterButton = async () => {
-
     if (!nameField.trim() || !emailField.trim() || !passwordField.trim()) {
       setError('Nome de usuário, email e senha são obrigatórios.');
       return;
@@ -29,16 +33,20 @@ export const SignupForm = () => {
 
     try {
       setError(null); 
-      const response = await api.post<RegisterResponse>('/users/register/', {
+      // Registro
+      const registerResponse = await api.post<RegisterResponse>('/users/register/', {
         username: nameField.trim(),
         email: emailField.trim(),
         password: passwordField.trim(),
-      }, {
-        headers: {
-          'Content-Type': 'application/json', 
-        },
       });
 
+      // Obter token
+      const tokenResponse = await api.post<TokenResponse>('/token/', {
+        username: nameField.trim(),
+        password: passwordField.trim(),
+      });
+      localStorage.setItem('token', tokenResponse.data.access);
+      localStorage.setItem('refresh_token', tokenResponse.data.refresh); // Opcional, se usar
       router.push('/home'); 
     } catch (err) {
       const errorMessage = (err as AxiosError).response?.data

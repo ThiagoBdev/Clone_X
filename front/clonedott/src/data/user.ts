@@ -1,11 +1,30 @@
-import { User } from "@/types/user";
+"use client"
 
-export const user:User = {
-    slug: 'thiago',
-    name: 'Thiago Batista',
-    avatar: 'https://i.pinimg.com/originals/14/62/90/146290f2f390713a9e9e8462e0319ec8.jpg',
-    cover: 'https://cdn.pixabay.com/photo/2025/08/29/02/23/landscape-9802950_1280.jpg',
-    bio: 'Apenas de passagem na tecnologia',
-    link: 'https://ebaconline.com.br',
-    postCount: 127
-}
+import { useState, useEffect } from 'react';
+import api from '@/lib/api';
+import { User } from '@/types/user';
+
+export const useUser = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await api.get('users/me/');
+        setUser(response.data);
+      } catch (err) {
+        console.error('Erro ao carregar usuário:', err);
+        setError('Falha ao carregar os dados do usuário.');
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  return { user, loading, error };
+};
