@@ -5,10 +5,18 @@ from .models import Tweet, Profile
 class ProfileSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(required=False, allow_null=True)
     cover = serializers.ImageField(required=False, allow_null=True)
+    following = serializers.SerializerMethodField()
+    followers_count = serializers.IntegerField(source='followed_by.count', read_only=True)
 
     class Meta:
         model = Profile
-        fields = ['slug', 'avatar', 'cover', 'bio', 'link']
+        fields = ['slug', 'avatar', 'cover', 'bio', 'link', 'following', 'followers_count']
+
+    def get_following(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.following.filter(id=request.user.id).exists()
+        return False
 
     def update(self, instance, validated_data):
         bio = validated_data.get('bio', instance.bio)
@@ -26,6 +34,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(required=False, partial=True)
+    
 
     class Meta:
         model = User
@@ -63,8 +72,13 @@ class UserSerializer(serializers.ModelSerializer):
         representation['first_name'] = str(representation.get('first_name', ''))
         representation['last_name'] = str(representation.get('last_name', ''))
         if 'profile' in representation:
-            representation['profile']['bio'] = str(representation['profile'].get('bio') or '')  # Corrige None para ''
-            representation['profile']['link'] = str(representation['profile'].get('link') or '')  # Corrige None para ''
+            representation['profile']['bio'] = str(representation['profile'].get('bio') or '')
+            representation['profile']['link'] = str(representation['profile'].get('link') or '')  
+        else:
+            representation['profile'] = {'bio': '', 'link': ''}  # Inicializa com valores padrão
+        # Adiciona following do profile
+        if hasattr(instance, 'profile') and instance.profile:
+            representation['profile']['following'] = [user.id for user in instance.profile.following.all()]
         return representation
 
 class TweetSerializer(serializers.ModelSerializer):

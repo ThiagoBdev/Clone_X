@@ -6,9 +6,9 @@ from django.utils.text import slugify
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    slug = models.SlugField(max_length=100, unique=True)
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True, default="https://api.dicebear.com/7.x/bottts/png?size=40")
-    cover = models.ImageField(upload_to='covers/', blank=True, null=True)
+    slug = models.SlugField(unique=True)
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    cover = models.ImageField(upload_to='covers/', null=True, blank=True)
     bio = models.TextField(max_length=500, blank=True, null=True)
     link = models.URLField(max_length=200, blank=True, null=True)
     followers = models.ManyToManyField(User, related_name='followed_by', blank=True)  
@@ -16,7 +16,6 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.username
-
 
 
 class Tweet(models.Model):

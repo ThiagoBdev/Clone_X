@@ -2,7 +2,7 @@ import { User } from "@/types/user";
 import Link from "next/link";
 import "./recommendation.css";
 import { Button } from "./button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from '@/lib/api';
 
 type Props = {
@@ -14,14 +14,42 @@ export const RecommendationItem = ({ user }: Props) => {
   const displaySlug = user.profile?.slug || user.slug || "sem-slug";
   const displayAvatar = user.profile?.avatar || user.avatar || "https://api.dicebear.com/7.x/bottts/png?size=40";
 
-  const [following, setFollowing] = useState(false);
+  const [following, setFollowing] = useState<boolean>(false);
+
+  const checkFollowingStatus = async (targetUserId: number) => {
+    
+    try {
+      const meResponse = await api.get('/users/me/');
+      const currentUserId = meResponse.data.id;
+      const profileResponse = await api.get(`/users/${currentUserId}/`);
+      const profile = profileResponse.data.profile; // Acessa o profile diretamente
+      if (profile && Array.isArray(profile.following)) {
+        setFollowing(profile.following.some((u: User) => u.id === targetUserId));
+      } else {
+        setFollowing(false); // Define como false se following não estiver disponível
+      }
+    } catch (err) {
+      console.error('Erro ao verificar status de follow:', err);
+      setFollowing(false); // Fallback em caso de erro
+    }
+  };
+
+
+  useEffect(() => {
+    if (user.id) {
+      checkFollowingStatus(user.id);
+    }
+  }, [user.id]);
 
   const handleFollowButton = async () => {
-    try {
-      const response = await api.post(`/users/${user.id}/follow/`);
-      setFollowing(response.data.following); // Atualiza o estado baseado na resposta
-    } catch (err) {
-      console.error('Erro ao seguir usuário:', err);
+    if (!following) {
+      try {
+        const response = await api.post(`/users/${user.id}/follow/`);
+        setFollowing(response.data.following); // Atualiza com base na resposta
+        console.log('Follow realizado, novo status:', response.data.following);
+      } catch (err) {
+        console.error('Erro ao seguir usuário:', err);
+      }
     }
   };
 

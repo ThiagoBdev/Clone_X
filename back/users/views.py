@@ -9,8 +9,11 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import generics
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.all().prefetch_related('profile__following')
     serializer_class = UserSerializer
+
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related('profile__following')
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def register(self, request):
@@ -93,12 +96,13 @@ class UserViewSet(viewsets.ModelViewSet):
         user = self.get_object()
         profile = user.profile
         followers_count = profile.followers.count()  
-        following_count = profile.following.count()  
+        following_count = profile.following.count()
+        print(f"Contagem - Seguidores: {followers_count}, Seguindo: {following_count}")  # Debug  
         return Response({
             'followers_count': followers_count,
             'following_count': following_count
         }, status=status.HTTP_200_OK)
-
+    
     @action(detail=True, methods=['post'], url_path='follow', permission_classes=[IsAuthenticated])
     def follow(self, request, pk=None):
         target_user = self.get_object()
@@ -106,12 +110,20 @@ class UserViewSet(viewsets.ModelViewSet):
         if current_user.id == target_user.id:
             return Response({'error': 'Você não pode seguir a si mesmo.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        profile = current_user.profile
-        if target_user.profile in profile.following.all():
-            profile.following.remove(target_user)
+        current_profile = current_user.profile
+        target_profile = target_user.profile
+
+        if target_profile in current_profile.following.all():
+            current_profile.following.remove(target_user)
+            target_profile.followers.remove(current_user)
+            current_profile.save()
+            target_profile.save()
             return Response({'message': 'Usuário deixado de seguir.', 'following': False}, status=status.HTTP_200_OK)
         else:
-            profile.following.add(target_user)
+            current_profile.following.add(target_user)
+            target_profile.followers.add(current_user)
+            current_profile.save()
+            target_profile.save()
             return Response({'message': 'Usuário seguido com sucesso.', 'following': True}, status=status.HTTP_200_OK)
 
 class TweetViewSet(viewsets.ModelViewSet):
