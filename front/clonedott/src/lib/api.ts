@@ -5,7 +5,6 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  // Verifica se está no lado do cliente antes de acessar localStorage
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
     if (token) {

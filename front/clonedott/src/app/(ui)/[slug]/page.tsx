@@ -21,15 +21,42 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
   const [error, setError] = useState<string | null>(null);
   const [followersCount, setFollowersCount] = useState<number>(0);
   const [followingCount, setFollowingCount] = useState<number>(0);
+  const [isFollowing, setIsFollowing] = useState<boolean>(false); // Estado para o botão
   const resolvedParams = React.use(params);
 
   const fetchCounts = async (userId: number) => {
     try {
+      console.log('Buscando contadores para userId:', userId);
       const countsResponse = await api.get(`/users/${userId}/followers-count/`);
+      console.log('Dados dos contadores:', countsResponse.data);
       setFollowersCount(countsResponse.data.followers_count);
       setFollowingCount(countsResponse.data.following_count);
     } catch (err) {
       console.error('Erro ao carregar contadores:', err);
+    }
+  };
+
+  const checkFollowingStatus = async (targetUserId: number) => {
+    try {
+      const meResponse = await api.get('/users/me/');
+      const currentUserId = meResponse.data.id;
+      const profileResponse = await api.get(`/users/${currentUserId}/`);
+      const profile = profileResponse.data.profile;
+      console.log('Resposta do perfil para checkFollowingStatus:', profileResponse.data); // Depuração completa
+      if (profile && Array.isArray(profile.following)) {
+        const isFollowingNow = profile.following.some((u: User) => u.id === targetUserId);
+        setIsFollowing(isFollowingNow);
+        console.log('Status de follow atualizado com following:', isFollowingNow);
+      } else {
+        console.log('following não encontrado ou não é array, tentando fallback');
+        // Fallback: consulta o endpoint de follow status, se disponível
+        const followStatusResponse = await api.get(`/users/${currentUserId}/following/${targetUserId}/`);
+        setIsFollowing(followStatusResponse.data.following);
+        console.log('Status de follow atualizado via fallback:', followStatusResponse.data.following);
+      }
+    } catch (err) {
+      console.error('Erro ao verificar status de follow:', err);
+      setIsFollowing(false);
     }
   };
 
@@ -49,7 +76,10 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
         setIsMeState(isMe);
         console.log('isMe:', isMe, 'Profile slug:', currentUser.profile?.slug, 'Params slug:', resolvedParams.slug);
 
-        await fetchCounts(profileUser.id); // Busca os contadores iniciais
+        await fetchCounts(currentUser.id);
+        if (user && user.id) {
+          await checkFollowingStatus(user.id);
+        }
       } catch (err: any) {
         console.error('Erro ao carregar usuário:', {
           message: err.message,
@@ -72,7 +102,7 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
     };
 
     fetchUser();
-  }, [resolvedParams.slug, router]);
+  }, [resolvedParams.slug, router, user?.id]);
 
   if (loading) return <div>Carregando...</div>;
   if (error || !user) return <div>{error || 'Usuário não encontrado.'}</div>;
@@ -103,7 +133,31 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
               </Link>
             )}
             {!isMeState && user && user.id !== undefined && (
-              <Button label="Seguir" size={2} onClick={() => fetchCounts(user.id!)} />
+              <Button
+                label={isFollowing ? "Seguindo" : "Seguir"}
+                size={2}
+                onClick={async () => {
+                  if (!isFollowing) {
+                    try {
+                      console.log('Tentando seguir usuário com ID:', user.id);
+                      const response = await api.post(`/users/${user.id}/follow/`);
+                      console.log('Resposta do follow:', response.data);
+                      const meResponse = await api.get('/users/me/');
+                      const currentUserId = meResponse.data.id;
+                      await fetchCounts(currentUserId);
+                      setIsFollowing(response.data.following); // Atualiza com base na resposta
+                      console.log('Contadores atualizados - Seguindo:', followingCount, 'Seguidores:', followersCount);
+                    } catch (err: any) {
+                      console.error('Erro ao seguir usuário:', {
+                        message: err.message,
+                        status: err.response?.status,
+                        data: err.response?.data,
+                      });
+                    }
+                  }
+                }}
+                disabled={isFollowing}
+              />
             )}
           </div>
         </div>
