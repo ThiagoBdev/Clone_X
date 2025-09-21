@@ -13,13 +13,13 @@ export interface Tweet {
     name: string;
     avatar: string | null;
     slug: string;
-    id: number; // Adicionado para verificação de propriedade
-    first_name?: string; // Adicionado como opcional
-    last_name?: string;  // Adicionado como opcional
+    id: number; 
+    first_name?: string; 
+    last_name?: string;  
     username?: string;
     profile?: {
-      avatar?: string | null; // Adicionado como opcional
-      slug?: string;          // Adicionado como opcional
+      avatar?: string | null; 
+      slug?: string;          
     };
   };
 }

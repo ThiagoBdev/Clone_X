@@ -21,9 +21,7 @@ export const RecommendationArea = () => {
       }
 
       try {
-        const response = await api.get(`/users/recommendations/?exclude=${user.id}&limit=5`); // Limite de 5 no backend
-        console.log('Resposta completa da API:', response.data);
-        // Limita a 3 recomendações no frontend
+        const response = await api.get(`/users/recommendations/?exclude=${user.id}&limit=5`); 
         const limitedRecommendations = response.data.slice(0, 3);
         setRecommendations(limitedRecommendations);
       } catch (err) {

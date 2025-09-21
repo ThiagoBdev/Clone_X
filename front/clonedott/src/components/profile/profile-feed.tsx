@@ -1,38 +1,44 @@
+
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useUser } from '@/data/user';
-import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { TweetItem } from "../tweet/tweet-item";
 import api from '@/lib/api';
+import { Tweet } from '@/types/tweet';
+import './profile-feed.css';
 
-export const ProfileFeed = () => {
-  const { user, loading: userLoading, error: userError } = useUser();
-  const params = useParams();
-  const [tweets, setTweets] = useState<any[]>([]);
+interface ProfileFeedProps {
+  slug: string;
+}
+
+export const ProfileFeed = ({ slug }: ProfileFeedProps) => {
+  const [tweets, setTweets] = useState<Tweet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTweets = async () => {
-      if (!user && !params?.slug) {
-        setError('Usuário não autenticado ou slug inválido.');
-        setLoading(false);
-        return;
-      }
-
       try {
-        const slug = params?.slug || user?.slug;
         if (!slug) {
           setError('Slug não encontrado.');
           setLoading(false);
           return;
         }
 
-        const response = await api.get(`users/${slug}/tweets/`);
-        setTweets(response.data); 
-      } catch (err) {
-        console.error('Erro ao carregar tweets do perfil:', err);
+        const response = await api.get('/tweets/');
+        const allTweets = response.data;
+        // Filtra tweets pelo slug do usuário
+        const userTweets = allTweets.filter(
+          (tweet: Tweet) =>
+            tweet.user?.profile?.slug === slug || tweet.user?.username === slug
+        );
+        setTweets(userTweets);
+      } catch (err: any) {
+        console.error('Erro ao carregar tweets do perfil:', {
+          message: err.message,
+          status: err.response?.status,
+          data: err.response?.data,
+        });
         setError('Falha ao carregar os tweets do perfil.');
       } finally {
         setLoading(false);
@@ -40,15 +46,16 @@ export const ProfileFeed = () => {
     };
 
     fetchTweets();
-  }, [user, params?.slug]);
+  }, [slug]);
 
-  if (userLoading || loading) return <div>Carregando...</div>;
-  if (userError || error) return <div>{userError || error}</div>;
+  if (loading) return <div style={{ textAlign: "center", marginTop: "10px" }}>Carregando tweets...</div>;
+  if (error) return <div>{error}</div>;
+  if (!tweets.length) return <div style={{ textAlign: "center", marginTop: "10px" }}>Nenhum post feito até agora</div>;
 
   return (
-    <div>
-      {tweets.map((tweet, index) => (
-        <TweetItem key={index} tweet={tweet} />
+    <div className="profile-feed">
+      {tweets.map((tweet) => (
+        <TweetItem key={tweet.id} tweet={tweet} />
       ))}
     </div>
   );

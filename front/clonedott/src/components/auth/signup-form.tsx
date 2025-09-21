@@ -46,7 +46,7 @@ export const SignupForm = () => {
         password: passwordField.trim(),
       });
       localStorage.setItem('token', tokenResponse.data.access);
-      localStorage.setItem('refresh_token', tokenResponse.data.refresh); // Opcional, se usar
+      localStorage.setItem('refresh_token', tokenResponse.data.refresh); 
       router.push('/home'); 
     } catch (err) {
       const errorMessage = (err as AxiosError).response?.data

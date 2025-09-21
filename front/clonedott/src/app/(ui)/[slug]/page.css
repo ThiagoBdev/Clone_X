@@ -147,3 +147,30 @@
     color: #ffffff;          
     margin-bottom: 0.5rem;   
 }
+
+
+.containerX4-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #434040;
+  border-radius: 10px;
+  margin-top: 10px;
+  background-color: transparent;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.containerX4-error {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+#link{
+    margin-bottom: 100px;
+}
+
+.form-group label{
+    margin-left: 10px;
+    color: #d0d0d0;
+}

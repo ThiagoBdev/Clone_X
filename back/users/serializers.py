@@ -3,8 +3,9 @@ from django.contrib.auth.models import User
 from .models import Tweet, Profile
 
 class ProfileSerializer(serializers.ModelSerializer):
-    avatar = serializers.ImageField(required=False, allow_empty_file=True, allow_null=True)
-    cover = serializers.ImageField(required=False, allow_empty_file=True, allow_null=True)
+
+    avatar = serializers.ImageField(required=False, allow_null=True)
+    cover = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = Profile
@@ -13,23 +14,53 @@ class ProfileSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.bio = validated_data.get('bio', instance.bio)
         instance.link = validated_data.get('link', instance.link)
-        
-        request = self.context.get('request')
-        if request and hasattr(request, 'FILES'):
-            if 'avatar' in request.FILES:
-                instance.avatar = request.FILES.get('avatar')
-            if 'cover' in request.FILES:
-                instance.cover = request.FILES.get('cover')
-        
+        instance.avatar = validated_data.get('avatar', instance.avatar)
+        instance.cover = validated_data.get('cover', instance.cover)
         instance.save()
         return instance
 
 class UserSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer()
+    profile = ProfileSerializer(required=False, partial=True)
 
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile']
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def update(self, instance, validated_data):
+        profile_data = validated_data.pop('profile', {})
+        
+        instance.username = validated_data.get('username', instance.username)
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.email = validated_data.get('email', instance.email)
+        instance.save()
+
+        profile, created = Profile.objects.get_or_create(user=instance)
+        
+        profile_serializer = ProfileSerializer(profile, data=profile_data, partial=True)
+        if profile_serializer.is_valid():
+            profile_serializer.save()
+        else:
+            raise serializers.ValidationError(profile_serializer.errors)
+
+        return instance
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['first_name'] = str(representation.get('first_name', ''))
+        representation['last_name'] = str(representation.get('last_name', ''))
+        if 'profile' in representation:
+            representation['profile']['bio'] = str(representation['profile'].get('bio', ''))
+            representation['profile']['link'] = str(representation['profile'].get('link', ''))
+        return representation
+
+
+    profile = ProfileSerializer()
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile' ]
         extra_kwargs = {'password': {'write_only': True}}
 
     def update(self, instance, validated_data):
