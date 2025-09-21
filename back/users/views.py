@@ -109,21 +109,17 @@ class UserViewSet(viewsets.ModelViewSet):
         current_user = request.user
         if current_user.id == target_user.id:
             return Response({'error': 'Você não pode seguir a si mesmo.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         current_profile = current_user.profile
         target_profile = target_user.profile
 
         if target_profile in current_profile.following.all():
             current_profile.following.remove(target_user)
             target_profile.followers.remove(current_user)
-            current_profile.save()
-            target_profile.save()
             return Response({'message': 'Usuário deixado de seguir.', 'following': False}, status=status.HTTP_200_OK)
         else:
             current_profile.following.add(target_user)
             target_profile.followers.add(current_user)
-            current_profile.save()
-            target_profile.save()
             return Response({'message': 'Usuário seguido com sucesso.', 'following': True}, status=status.HTTP_200_OK)
 
 class TweetViewSet(viewsets.ModelViewSet):
