@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { GeneralHeader } from "@/components/ui/general-header";
 import { Button } from "@/components/ui/button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLink } from "@fortawesome/free-solid-svg-icons";
 import { ProfileFeed } from "@/components/profile/profile-feed";
-import api from '@/lib/api';
-import { User } from '@/types/user';
+import api from "@/lib/api";
+import { User } from "@/types/user";
 import "./page.css";
-import React from 'react';
+import React from "react";
 
 export default function ProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const router = useRouter();
@@ -21,80 +21,120 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
   const [error, setError] = useState<string | null>(null);
   const [followersCount, setFollowersCount] = useState<number>(0);
   const [followingCount, setFollowingCount] = useState<number>(0);
-  const [isFollowing, setIsFollowing] = useState<boolean>(false); // Estado para o botão
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+
   const resolvedParams = React.use(params);
 
   const fetchCounts = async (userId: number) => {
     try {
-      console.log('Buscando contadores para userId:', userId);
+      console.log("Buscando contadores para userId:", userId);
       const countsResponse = await api.get(`/users/${userId}/followers-count/`);
-      console.log('Dados dos contadores:', countsResponse.data);
+      console.log("Dados dos contadores:", countsResponse.data);
       setFollowersCount(countsResponse.data.followers_count);
       setFollowingCount(countsResponse.data.following_count);
     } catch (err) {
-      console.error('Erro ao carregar contadores:', err);
+      console.error("Erro ao carregar contadores:", err);
     }
   };
 
   const checkFollowingStatus = async (targetUserId: number) => {
     try {
-      const meResponse = await api.get('/users/me/');
+      const meResponse = await api.get("/users/me/");
       const currentUserId = meResponse.data.id;
       const profileResponse = await api.get(`/users/${currentUserId}/`);
       const profile = profileResponse.data.profile;
-      console.log('Resposta do perfil para checkFollowingStatus:', profileResponse.data); // Depuração completa
       if (profile && Array.isArray(profile.following)) {
-        const isFollowingNow = profile.following.some((u: User) => u.id === targetUserId);
+        const isFollowingNow = profile.following.includes(targetUserId);
         setIsFollowing(isFollowingNow);
-        console.log('Status de follow atualizado com following:', isFollowingNow);
+        console.log("Status de follow atualizado:", isFollowingNow);
       } else {
-        console.log('following não encontrado ou não é array, tentando fallback');
-        // Fallback: consulta o endpoint de follow status, se disponível
-        const followStatusResponse = await api.get(`/users/${currentUserId}/following/${targetUserId}/`);
-        setIsFollowing(followStatusResponse.data.following);
-        console.log('Status de follow atualizado via fallback:', followStatusResponse.data.following);
+        console.log("following não disponível, usando fallback");
+        setIsFollowing(false);
       }
     } catch (err) {
-      console.error('Erro ao verificar status de follow:', err);
+      console.error("Erro ao verificar status de follow:", err);
       setIsFollowing(false);
+    }
+  };
+
+  const handleFollow = async (userId: number) => {
+    if (!isFollowing) {
+      try {
+        console.log("Tentando seguir usuário com ID:", userId);
+        const response = await api.post(`/users/${userId}/follow/`);
+        console.log("Resposta do follow:", response.data);
+        await fetchCounts(userId);
+        setIsFollowing(response.data.following);
+      } catch (err: any) {
+        console.error("Erro ao seguir usuário:", {
+          message: err.message,
+          status: err.response?.status,
+          data: err.response?.data,
+        });
+      }
+    } else {
+      try {
+        console.log("Tentando deixar de seguir usuário com ID:", userId);
+        const response = await api.post(`/users/${userId}/follow/`);
+        console.log("Resposta do unfollow:", response.data);
+        await fetchCounts(userId);
+        setIsFollowing(!response.data.following);
+      } catch (err: any) {
+        console.error("Erro ao deixar de seguir usuário:", {
+          message: err.message,
+          status: err.response?.status,
+          data: err.response?.data,
+        });
+      }
     }
   };
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem('token');
-        console.log('Token atual (Profile):', token ? 'Presente' : 'Ausente');
+        const token = localStorage.getItem("token");
+        console.log("Token atual (Profile):", token ? "Presente" : "Ausente");
 
         const profileResponse = await api.get(`/users/slug/${resolvedParams.slug}/`);
         const profileUser = profileResponse.data;
-        setUser(profileUser);
+        setUser(profileUser);  // setUser é assíncrono, então user ainda pode ser null aqui
 
-        const meResponse = await api.get('/users/me/');
+        const meResponse = await api.get("/users/me/");
         const currentUser = meResponse.data;
         const isMe = currentUser.profile?.slug === resolvedParams.slug;
         setIsMeState(isMe);
-        console.log('isMe:', isMe, 'Profile slug:', currentUser.profile?.slug, 'Params slug:', resolvedParams.slug);
+        console.log(
+          "isMe:",
+          isMe,
+          "Profile slug:",
+          currentUser.profile?.slug,
+          "Params slug:",
+          resolvedParams.slug
+        );
 
-        await fetchCounts(currentUser.id);
-        if (user && user.id) {
-          await checkFollowingStatus(user.id);
+        // Correção: Use uma variável local para extrair o ID e fazer o check
+        if (profileUser && profileUser.id) {  // Type guard: profileUser não é null aqui
+          const userId = profileUser.id;  // TS agora sabe que é number
+          await fetchCounts(userId);
+          await checkFollowingStatus(userId);
+        } else {
+          console.warn("User não carregou corretamente, pulando fetches.");
         }
       } catch (err: any) {
-        console.error('Erro ao carregar usuário:', {
+        console.error("Erro ao carregar usuário:", {
           message: err.message,
           status: err.response?.status,
           data: err.response?.data,
         });
         if (err.response?.status === 401) {
-          setError('Sessão expirada. Faça login novamente.');
-          router.push('/login');
+          setError("Sessão expirada. Faça login novamente.");
+          router.push("/login");
         } else if (err.response?.status === 404) {
-          setError('Usuário não encontrado.');
-          router.push('/');
+          setError("Usuário não encontrado.");
+          router.push("/");
         } else {
-          setError('Falha ao carregar o perfil.');
-          router.push('/');
+          setError("Falha ao carregar o perfil.");
+          router.push("/");
         }
       } finally {
         setLoading(false);
@@ -102,17 +142,17 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
     };
 
     fetchUser();
-  }, [resolvedParams.slug, router, user?.id]);
+  }, [resolvedParams.slug, router]);  // Removi user?.id da dependência pra evitar loops infinitos
 
   if (loading) return <div>Carregando...</div>;
-  if (error || !user) return <div>{error || 'Usuário não encontrado.'}</div>;
+  if (error || !user) return <div>{error || "Usuário não encontrado."}</div>;
 
-  const displayName = user.first_name || user.username || 'Usuário Desconhecido';
-  const displaySlug = user.profile?.slug || 'default';
-  const displayAvatar = user.profile?.avatar || 'https://api.dicebear.com/7.x/bottts/png?size=40';
-  const displayCover = user.profile?.cover || 'https://placehold.co/300x100';
-  const displayBio = user.profile?.bio || '';
-  const displayLink = user.profile?.link || '';
+  const displayName = user.first_name || user.username || "Usuário Desconhecido";
+  const displaySlug = user.profile?.slug || "default";
+  const displayAvatar = user.profile?.avatar || "https://api.dicebear.com/7.x/bottts/png?size=40";
+  const displayCover = user.profile?.cover || "https://placehold.co/300x100";
+  const displayBio = user.profile?.bio || "";
+  const displayLink = user.profile?.link || "";
   const postCount = user.postCount || 0;
 
   return (
@@ -136,26 +176,7 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
               <Button
                 label={isFollowing ? "Seguindo" : "Seguir"}
                 size={2}
-                onClick={async () => {
-                  if (!isFollowing) {
-                    try {
-                      console.log('Tentando seguir usuário com ID:', user.id);
-                      const response = await api.post(`/users/${user.id}/follow/`);
-                      console.log('Resposta do follow:', response.data);
-                      const meResponse = await api.get('/users/me/');
-                      const currentUserId = meResponse.data.id;
-                      await fetchCounts(currentUserId);
-                      setIsFollowing(response.data.following); // Atualiza com base na resposta
-                      console.log('Contadores atualizados - Seguindo:', followingCount, 'Seguidores:', followersCount);
-                    } catch (err: any) {
-                      console.error('Erro ao seguir usuário:', {
-                        message: err.message,
-                        status: err.response?.status,
-                        data: err.response?.data,
-                      });
-                    }
-                  }
-                }}
+                onClick={() => handleFollow(user.id)}  // Aqui também: user não é null porque já checamos no if de cima
                 disabled={isFollowing}
               />
             )}
@@ -168,7 +189,9 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
           {displayLink && (
             <div className="containerX5">
               <FontAwesomeIcon icon={faLink} className="containerX6" />
-              <Link href={displayLink} target="_blank" className="containerX7">{displayLink}</Link>
+              <Link href={displayLink} target="_blank" className="containerX7">
+                {displayLink}
+              </Link>
             </div>
           )}
           <div className="containerX8">
