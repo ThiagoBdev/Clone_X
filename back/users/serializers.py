@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from .models import Tweet, Profile
 
 class ProfileSerializer(serializers.ModelSerializer):
-
     avatar = serializers.ImageField(required=False, allow_null=True)
     cover = serializers.ImageField(required=False, allow_null=True)
 
@@ -12,10 +11,16 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = ['slug', 'avatar', 'cover', 'bio', 'link']
 
     def update(self, instance, validated_data):
-        instance.bio = validated_data.get('bio', instance.bio)
+        bio = validated_data.get('bio', instance.bio)
+        print(f"Atualizando bio: {bio} (tipo: {type(bio)})")  # Debug
+        instance.bio = bio
         instance.link = validated_data.get('link', instance.link)
-        instance.avatar = validated_data.get('avatar', instance.avatar)
-        instance.cover = validated_data.get('cover', instance.cover)
+        request = self.context.get('request')
+        if request and request.FILES:
+            if 'profile.avatar' in request.FILES:  # Ajustado para prefixo
+                instance.avatar = request.FILES['profile.avatar']
+            if 'profile.cover' in request.FILES:  # Ajustado para prefixo
+                instance.cover = request.FILES['profile.cover']
         instance.save()
         return instance
 
@@ -25,7 +30,13 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile']
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {
+            'password': {'write_only': True, 'required': False},
+            'username': {'required': False},
+            'email': {'required': False},
+            'first_name': {'required': False},
+            'last_name': {'required': False},
+        }
 
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('profile', {})
@@ -34,46 +45,11 @@ class UserSerializer(serializers.ModelSerializer):
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.email = validated_data.get('email', instance.email)
+        if 'password' in validated_data:
+            instance.set_password(validated_data['password'])
         instance.save()
 
         profile, created = Profile.objects.get_or_create(user=instance)
-        
-        profile_serializer = ProfileSerializer(profile, data=profile_data, partial=True)
-        if profile_serializer.is_valid():
-            profile_serializer.save()
-        else:
-            raise serializers.ValidationError(profile_serializer.errors)
-
-        return instance
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['first_name'] = str(representation.get('first_name', ''))
-        representation['last_name'] = str(representation.get('last_name', ''))
-        if 'profile' in representation:
-            representation['profile']['bio'] = str(representation['profile'].get('bio', ''))
-            representation['profile']['link'] = str(representation['profile'].get('link', ''))
-        return representation
-
-
-    profile = ProfileSerializer()
-
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile' ]
-        extra_kwargs = {'password': {'write_only': True}}
-
-    def update(self, instance, validated_data):
-        profile_data = validated_data.pop('profile', {})
-        
-        instance.first_name = validated_data.get('first_name', instance.first_name)
-        instance.last_name = validated_data.get('last_name', instance.last_name)
-        if validated_data.get('password'):
-            instance.set_password(validated_data.get('password'))
-        instance.save()
-
-        profile, created = Profile.objects.get_or_create(user=instance)
-        
         profile_serializer = ProfileSerializer(profile, data=profile_data, partial=True, context={'request': self.context.get('request')})
         if profile_serializer.is_valid():
             profile_serializer.save()
@@ -87,8 +63,8 @@ class UserSerializer(serializers.ModelSerializer):
         representation['first_name'] = str(representation.get('first_name', ''))
         representation['last_name'] = str(representation.get('last_name', ''))
         if 'profile' in representation:
-            representation['profile']['bio'] = str(representation['profile'].get('bio', ''))
-            representation['profile']['link'] = str(representation['profile'].get('link', ''))
+            representation['profile']['bio'] = str(representation['profile'].get('bio') or '')  # Corrige None para ''
+            representation['profile']['link'] = str(representation['profile'].get('link') or '')  # Corrige None para ''
         return representation
 
 class TweetSerializer(serializers.ModelSerializer):

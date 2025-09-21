@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -20,7 +19,19 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
   const [isMeState, setIsMeState] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [followersCount, setFollowersCount] = useState<number>(0);
+  const [followingCount, setFollowingCount] = useState<number>(0);
   const resolvedParams = React.use(params);
+
+  const fetchCounts = async (userId: number) => {
+    try {
+      const countsResponse = await api.get(`/users/${userId}/followers-count/`);
+      setFollowersCount(countsResponse.data.followers_count);
+      setFollowingCount(countsResponse.data.following_count);
+    } catch (err) {
+      console.error('Erro ao carregar contadores:', err);
+    }
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -28,17 +39,17 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
         const token = localStorage.getItem('token');
         console.log('Token atual (Profile):', token ? 'Presente' : 'Ausente');
 
-        // Carrega o perfil com base no slug da URL
         const profileResponse = await api.get(`/users/slug/${resolvedParams.slug}/`);
         const profileUser = profileResponse.data;
         setUser(profileUser);
 
-        // Verifica se é o usuário autenticado
         const meResponse = await api.get('/users/me/');
         const currentUser = meResponse.data;
         const isMe = currentUser.profile?.slug === resolvedParams.slug;
         setIsMeState(isMe);
         console.log('isMe:', isMe, 'Profile slug:', currentUser.profile?.slug, 'Params slug:', resolvedParams.slug);
+
+        await fetchCounts(profileUser.id); // Busca os contadores iniciais
       } catch (err: any) {
         console.error('Erro ao carregar usuário:', {
           message: err.message,
@@ -73,8 +84,6 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
   const displayBio = user.profile?.bio || '';
   const displayLink = user.profile?.link || '';
   const postCount = user.postCount || 0;
-  const followingCount = 99; // Substituir por valor real quando disponível
-  const followersCount = 99; // Substituir por valor real quando disponível
 
   return (
     <div>
@@ -93,7 +102,9 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
                 <Button label="Editar Perfil" size={2} />
               </Link>
             )}
-            {!isMeState && <Button label="Seguir" size={2} />}
+            {!isMeState && user && user.id !== undefined && (
+              <Button label="Seguir" size={2} onClick={() => fetchCounts(user.id!)} />
+            )}
           </div>
         </div>
         <div className="containerX1">
