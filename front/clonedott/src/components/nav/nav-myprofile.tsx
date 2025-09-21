@@ -39,7 +39,7 @@ export const NavMyProfile = () => {
       <div className="maincontainer">
         <div className="containerimagem">
           <img
-            src="https://via.placeholder.com/40"
+            src="https://api.dicebear.com/7.x/identicon/png?size=40"
             alt="Carregando"
           />
         </div>
@@ -82,8 +82,8 @@ export const NavMyProfile = () => {
         <Link href={`/${displaySlug}`}>
           <img
             src={displayAvatar}
-            alt={displayName} // Adicionado para acessibilidade
-            onError={(e) => { (e.target as HTMLImageElement).src = "https://api.dicebear.com/7.x/identicon/png?size=40"; }} // Fallback se falhar
+            alt={displayName} 
+            onError={(e) => { (e.target as HTMLImageElement).src = "https://api.dicebear.com/7.x/identicon/png?size=40"; }} 
           />
         </Link>
       </div>

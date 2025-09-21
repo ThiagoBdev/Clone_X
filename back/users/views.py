@@ -29,14 +29,24 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=['patch'], url_path='update-profile')
-    def update_profile(self, request, pk=None):
-        user = self.get_object()
-        serializer = self.get_serializer(user, data=request.data, files=request.FILES, partial=True)
+    @action(detail=False, methods=['patch'], url_path='me/update-profile', permission_classes=[IsAuthenticated])
+    def update_profile(self, request):
+        user = request.user
+        serializer = self.get_serializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['get'], url_path='tweets')
+    def get_user_tweets(self, request, pk=None):
+        try:
+            user = self.get_object()
+            tweets = Tweet.objects.filter(user=user)
+            serializer = TweetSerializer(tweets, many=True)
+            return Response(serializer.data)
+        except User.DoesNotExist:
+            return Response({'detail': 'Usuário não encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
     def retrieve(self, request, pk=None):  
         user = self.get_object()
@@ -84,6 +94,22 @@ class TweetViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Commented'}, status=status.HTTP_200_OK)
         return Response({'error': 'Text is required'}, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['post'])
+    def like(self, request, pk=None):
+        tweet = self.get_object()
+        tweet.likeCount += 1
+        tweet.liked = True
+        tweet.save()
+        return Response({'message': 'Tweet curtido'}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def unlike(self, request, pk=None):
+        tweet = self.get_object()
+        if tweet.likeCount > 0:
+            tweet.likeCount -= 1
+        tweet.liked = False
+        tweet.save()
+        return Response({'message': 'Tweet descurtido'}, status=status.HTTP_200_OK)
 
 class UserRecommendationsView(generics.ListAPIView):
     serializer_class = UserSerializer

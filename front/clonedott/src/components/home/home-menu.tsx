@@ -1,45 +1,62 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { Logo } from "../ui/logo"
-import { faHouse, faUser, faXmark } from "@fortawesome/free-solid-svg-icons"
+"use client";
 
-import "./home-menu.css"
-import { SearchInput } from "../ui/search-input"
-import { NavItem } from "../nav/nav-item"
-import { Navlogout } from "../nav/nav-logout"
+import { useEffect, useState } from 'react';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Logo } from "../ui/logo";
+import { faHouse, faUser, faXmark } from "@fortawesome/free-solid-svg-icons";
+import "./home-menu.css";
+import { SearchInput } from "../ui/search-input";
+import { NavItem } from "../nav/nav-item";
+import { Navlogout } from "../nav/nav-logout";
+import api from '@/lib/api';
 
 type Props = {
-    closeAction: () => void
-}
+  closeAction: () => void;
+};
 
-export const HomeMenu = ({closeAction}: Props) => {
-    return(
-        <div className="ContainerhomeBar">
-            <div className="containercenter">
-                <Logo size={32}/>
-                <div onClick={closeAction} className="iconX">
-                    <FontAwesomeIcon icon={faXmark} className="iconimagebar"/>
-                </div>
-            </div>
+export const HomeMenu = ({ closeAction }: Props) => {
+  const [userSlug, setUserSlug] = useState<string | null>(null);
 
-            <div style={{ marginTop: "10px" }}>
-                <SearchInput />
-            </div>
+  useEffect(() => {
+    const fetchUserSlug = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setUserSlug(null);
+          return;
+        }
+        const response = await api.get('/users/me/');
+        setUserSlug(response.data.profile?.slug || null);
+      } catch (error) {
+        console.error('Erro ao carregar slug do usuário:', error);
+        setUserSlug(null);
+      }
+    };
+    fetchUserSlug();
+  }, []);
 
-            <div>
-                <NavItem 
-                    href="/home"
-                    icon={faHouse}
-                    label="Pagina inicial"
-                />
-                <NavItem 
-                    href="/profile"
-                    icon={faUser}
-                    label="Meu perfil"
-                />
-                <Navlogout />
-            </div>
+  return (
+    <div className="ContainerhomeBar">
+      <div className="containercenter">
+        <Logo size={32} />
+        <div onClick={closeAction} className="iconX">
+          <FontAwesomeIcon icon={faXmark} className="iconimagebar" />
         </div>
-    )
-}     
+      </div>
 
-        /*problema acima resolvido, continuar do 2:48:16 */
+      <div style={{ marginTop: "10px" }}>
+        <SearchInput />
+      </div>
+
+      <div>
+        <NavItem href="/home" icon={faHouse} label="Pagina inicial" />
+        <NavItem
+          href={userSlug ? `/${userSlug}` : '/login'}
+          icon={faUser}
+          label="Meu perfil"
+        />
+        <Navlogout />
+      </div>
+    </div>
+  );
+};

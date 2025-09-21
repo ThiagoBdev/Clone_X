@@ -1,217 +1,213 @@
-"use client"
 
-import { useState, useEffect } from "react";
-import { GeneralHeader } from "@/components/ui/general-header";
-import { useRouter, useParams } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 import api from "@/lib/api";
-import { AxiosError } from "axios";
-import '../page.css';
+import { User } from "@/types/user";
+import { Button } from "@/components/ui/button";
+import { GeneralHeader } from "@/components/ui/general-header";
+import "../page.css";
+import React from "react";
 
-interface ApiErrorResponse {
-  detail?: string;
-  [key: string]: any;
-}
-
-interface UserData {
-  id: number;
+interface FormData {
+  username: string;
   first_name: string;
   last_name: string;
-  profile: {
-    bio: string;
-    link: string;
-    avatar: string;
-    cover: string;
-  };
+  email: string;
+  bio: string;
+  link: string;
+  avatar: FileList | null;
+  cover: FileList | null;
 }
 
-export default function Page() {
+export default function EditProfile({ params }: { params: Promise<{ slug: string }> }) {
   const router = useRouter();
-  const params = useParams(); // Pega o slug da URL (ex: "thiago")
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [bio, setBio] = useState("");
-  const [link, setLink] = useState("");
-  const [avatar, setAvatar] = useState<File | null>(null);
-  const [cover, setCover] = useState<File | null>(null);
-  const [password, setPassword] = useState("");
+  const [user, setUser] = useState<User | null>(null);
+  const [isMeState, setIsMeState] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [userId, setUserId] = useState<number | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false); // Adicionado ao estado
+  const [loading, setLoading] = useState(true);
+  const resolvedParams = React.use(params);
+
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm<FormData>({
+    defaultValues: {
+      username: "",
+      first_name: "",
+      last_name: "",
+      email: "",
+      bio: "",
+      link: "",
+      avatar: null,
+      cover: null,
+    },
+  });
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    console.log("Token no localStorage:", token);
-    if (!token) {
-      setError("Usuário não autenticado. Faça login novamente.");
-      return;
-    }
-    const fetchUserData = async () => {
+    const fetchUser = async () => {
       try {
-        // Validar e extrair user_id do token
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        console.log("Payload decodificado:", payload);
-        const uidFromToken = Number(payload.user_id);
-        if (isNaN(uidFromToken)) {
-          throw new Error("user_id inválido no token.");
-        }
-        setUserId(uidFromToken);
-        console.log("UserId do token:", uidFromToken);
-        // Usar o slug da URL como fallback
-        let uidFromSlug: number | undefined;
-        if (params && params.slug) {
-          console.log("Slug da URL:", params.slug);
-          const slugResponse = await api.get(`/users/slug/${params.slug}/`);
-          uidFromSlug = slugResponse.data.id;
-          if (uidFromSlug) {
-            setUserId(uidFromSlug);
-            console.log("UserId do slug:", uidFromSlug);
-          }
-        }
-        if (!userId) {
-          setError("Usuário não identificado. Verifique o token ou o slug.");
+        const token = localStorage.getItem("token");
+        console.log("Token atual (EditProfile):", token ? "Presente" : "Ausente");
+
+        const meResponse = await api.get("/users/me/");
+        const currentUser = meResponse.data;
+        console.log("Usuário carregado:", currentUser);
+
+        const isMe = currentUser.profile?.slug === resolvedParams.slug;
+        setIsMeState(isMe);
+        console.log("isMe:", isMe, "Profile slug:", currentUser.profile?.slug, "Params slug:", resolvedParams.slug);
+
+        if (!isMe) {
+          setError("Você não tem permissão para editar este perfil.");
+          router.push("/");
           return;
         }
-        // Carregar dados do usuário
-        const response = await api.get(`/users/${userId}/`);
-        const userData = response.data as UserData;
-        setFirstName(userData.first_name || "");
-        setLastName(userData.last_name || "");
-        setBio(userData.profile.bio || "");
-        setLink(userData.profile.link || "");
-        setAvatarPreview(userData.profile.avatar ? `http://localhost:8000${userData.profile.avatar}` : null);
-        setCoverPreview(userData.profile.cover ? `http://localhost:8000${userData.profile.cover}` : null);
-      } catch (err) {
-        const axiosError = err as AxiosError<ApiErrorResponse>;
-        setError(axiosError.response?.data?.detail || "Erro ao carregar dados do usuário.");
-        console.error("Erro na autenticação ou carregamento:", err);
+
+        setUser(currentUser);
+        setValue("username", currentUser.username || "");
+        setValue("first_name", currentUser.first_name || "");
+        setValue("last_name", currentUser.last_name || "");
+        setValue("email", currentUser.email || "");
+        setValue("bio", currentUser.profile?.bio || "");
+        setValue("link", currentUser.profile?.link || "");
+      } catch (err: any) {
+        console.error("Erro ao carregar usuário:", {
+          message: err.message,
+          status: err.response?.status,
+          data: err.response?.data,
+        });
+
+        if (err.response?.status === 401) {
+          try {
+            const refreshToken = localStorage.getItem("refresh_token");
+            if (refreshToken) {
+              console.log("Refresh token:", refreshToken);
+              const refreshResponse = await api.post("/token/refresh/", { refresh: refreshToken });
+              localStorage.setItem("token", refreshResponse.data.access);
+              console.log("Novo token gerado:", refreshResponse.data.access);
+              window.location.reload();
+            } else {
+              setError("Sessão expirada. Faça login novamente.");
+              router.push("/login");
+            }
+          } catch (refreshErr) {
+            console.error("Erro ao renovar token:", refreshErr);
+            setError("Sessão expirada. Faça login novamente.");
+            router.push("/login");
+          }
+        } else {
+          setError("Falha ao carregar o perfil.");
+          router.push("/");
+        }
+      } finally {
+        setLoading(false);
       }
     };
-    fetchUserData();
-  }, [params]); // Removido userId das dependências
 
-  useEffect(() => {
-    // Limpar URLs de preview ao desmontar o componente
-    return () => {
-      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
-      if (coverPreview) URL.revokeObjectURL(coverPreview);
-    };
-  }, [avatarPreview, coverPreview]);
+    fetchUser();
+  }, [resolvedParams.slug, router, setValue]);
 
-  const handleUpdateProfile = async () => {
-    if (!userId) {
-      setError("Usuário não identificado.");
-      return;
-    }
-
-    setIsLoading(true); // Inicie o estado de carregamento
-
-    const formData = new FormData();
-    formData.append("first_name", firstName);
-    formData.append("last_name", lastName);
-    formData.append("profile.bio", bio);
-    formData.append("profile.link", link);
-    if (password) formData.append("password", password);
-    if (avatar) formData.append("profile.avatar", avatar);
-    if (cover) formData.append("profile.cover", cover);
-
+  const onSubmit = async (data: FormData) => {
     try {
-      console.log("Enviando requisição PATCH para /users/", userId);
-      const response = await api.patch(`/users/${userId}/update-profile/`, formData);
-      console.log("Perfil atualizado com sucesso:", response.data);
-      setError(null);
-      router.push(`/profile/${params.slug}`); // Redirecionamento após sucesso
-    } catch (err) {
-      const axiosError = err as AxiosError<ApiErrorResponse>;
-      const errorMsg = axiosError.response?.data?.detail || axiosError.message || "Erro ao atualizar perfil.";
-      setError(errorMsg);
-      console.error(err);
-    } finally {
-      setIsLoading(false); // Finalize o estado de carregamento
+      const formData = new FormData();
+      formData.append("username", data.username);
+      formData.append("first_name", data.first_name);
+      formData.append("last_name", data.last_name);
+      formData.append("email", data.email);
+      formData.append("bio", data.bio);
+      formData.append("link", data.link);
+      if (data.avatar && data.avatar[0]) {
+        formData.append("avatar", data.avatar[0]);
+      }
+      if (data.cover && data.cover[0]) {
+        formData.append("cover", data.cover[0]);
+      }
+
+      console.log("Enviando FormData:", [...formData]);
+      const response = await api.patch("/users/me/update-profile/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      console.log("Perfil atualizado:", response.data);
+      router.push(`/${resolvedParams.slug}`);
+    } catch (err: any) {
+      console.error("Erro ao atualizar perfil:", {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+      });
+      setError("Falha ao atualizar o perfil.");
     }
   };
 
-  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setAvatar(event.target.files[0]);
-      setAvatarPreview(URL.createObjectURL(event.target.files[0]));
-    }
-  };
-
-  const handleCoverChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setCover(event.target.files[0]);
-      setCoverPreview(URL.createObjectURL(event.target.files[0]));
-    }
-  };
+  if (loading) return <div>Carregando...</div>;
+  if (error || !user) return <div>{error || "Usuário não encontrado."}</div>;
 
   return (
     <div>
-      <GeneralHeader backHref="/">
-        <div className="containerH1">Editar perfil</div>
+      <GeneralHeader backHref={`/${resolvedParams.slug}`}>
+        <div className="containerH1">Editar Perfil</div>
       </GeneralHeader>
-
       <section className="containerS1">
-        {avatarPreview && (
-          <img src={avatarPreview} alt="Avatar" style={{ width: "100px", height: "100px" }} />
-        )}
-        <input type="file" accept="image/*" onChange={handleAvatarChange} />
-        {coverPreview && (
-          <img src={coverPreview} alt="Capa" style={{ width: "200px", height: "100px" }} />
-        )}
-        <input type="file" accept="image/*" onChange={handleCoverChange} />
-      </section>
-
-      <section className="containerB1">
-        <label>
-          <p className="containerB2">Nome</p>
-          <Input
-            placeholder="Digite seu nome"
-            value={firstName}
-            onChange={setFirstName}
+        <form onSubmit={handleSubmit(onSubmit)} className="edit-profile-form">
+                    <div className="form-group">
+            <label htmlFor="avatar">Foto de perfil</label>
+            <input
+              id="avatar"
+              type="file"
+              accept="image/*"
+              {...register("avatar")}
+              className="containerX4-input"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="cover">Capa</label>
+            <input
+              id="cover"
+              type="file"
+              accept="image/*"
+              {...register("cover")}
+              className="containerX4-input"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="username">Nome de usuário</label>
+            <input
+              id="username"
+              {...register("username", { required: "Nome de usuário é obrigatório" })}
+              className="containerX4-input"
+            />
+            {errors.username && <span className="containerX4-error">{errors.username.message}</span>}
+          </div>
+          <div className="form-group">
+            <label htmlFor="password">Senha</label>
+            <input
+              id="password"
+              {...register("username")}
+              className="containerX4-input"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="bio">Bio</label>
+            <textarea style={{ resize: "none" }}
+              id="bio"
+              {...register("bio")}
+              className="containerX4-input"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="link">Link</label>
+            <input
+              id="link"
+              {...register("link")}
+              className="containerX4-input"
+            />
+          </div>
+          <Button
+            label="Salvar"
+            size={2}
+            onClick={handleSubmit(onSubmit)} 
           />
-        </label>
-
-        <label>
-          <p className="containerB2">Bio</p>
-          <Textarea
-            placeholder="Descreva você mesmo"
-            rows={4}
-            value={bio}
-            onChange={setBio}
-          />
-        </label>
-
-        <label>
-          <p className="containerB2">Link</p>
-          <Input
-            placeholder="Digite um link"
-            value={link}
-            onChange={setLink}
-          />
-        </label>
-
-        <label>
-          <p className="containerB2">Nova Senha (opcional)</p>
-          <Input
-            placeholder="Digite uma nova senha"
-            value={password}
-            password={true}
-            onChange={setPassword}
-          />
-        </label>
-
-        {error && <p className="error">{error}</p>}
-        <Button
-          label={isLoading ? "Salvando..." : "Salvar alterações"}
-          size={1}
-          onClick={handleUpdateProfile}
-          disabled={isLoading}
-        />
+        </form>
       </section>
     </div>
   );

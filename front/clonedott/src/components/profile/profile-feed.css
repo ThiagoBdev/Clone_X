@@ -1,0 +1,17 @@
+.profile-feed {
+  margin-top: 20px;
+}
+.tweet {
+  border-bottom: 1px solid #eee;
+  padding: 10px;
+}
+.tweet-header {
+  font-weight: bold;
+}
+.tweet-content {
+  margin: 10px 0;
+}
+.tweet-footer {
+  color: #666;
+  font-size: 12px;
+}

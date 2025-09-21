@@ -15,6 +15,8 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
+
+
 class Tweet(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tweets')
     text = models.TextField(max_length=280)
@@ -22,6 +24,8 @@ class Tweet(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     likes = models.ManyToManyField(User, related_name='liked_tweets', blank=True)
+    likeCount = models.IntegerField(default=0)
+    liked = models.BooleanField(default=False)
     retweets = models.ManyToManyField(User, related_name='retweeted_tweets', blank=True)
     comments = models.ManyToManyField('self', symmetrical=False, blank=True, related_name='commented_on')
 

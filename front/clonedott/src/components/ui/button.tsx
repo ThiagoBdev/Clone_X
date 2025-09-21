@@ -1,10 +1,11 @@
+
 import "./button.css";
 
 type Props = {
   label: string;
   onClick?: () => void;
   size: 1 | 2 | 3;
-  disabled?: boolean; // Mantido para compatibilidade, mas controlado via CSS e lógica
+  disabled?: boolean;
 };
 
 export const Button = ({ label, onClick, size, disabled = false }: Props) => {
@@ -16,8 +17,8 @@ export const Button = ({ label, onClick, size, disabled = false }: Props) => {
 
   return (
     <div
-      className={`Buttonstyle ${disabled ? "disabled" : ""}`} // Adiciona classe 'disabled' quando disabled for true
-      onClick={disabled ? undefined : onClick} // Desativa onClick se disabled for true
+      className={`Buttonstyle ${disabled ? "disabled" : ""}`}
+      onClick={disabled ? undefined : onClick}
       style={buttonStyle}
     >
       {label}
