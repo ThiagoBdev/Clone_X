@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -20,6 +19,7 @@ interface FormData {
   link: string;
   avatar: FileList | null;
   cover: FileList | null;
+  password?: string; 
 }
 
 export default function EditProfile({ params }: { params: Promise<{ slug: string }> }) {
@@ -81,7 +81,6 @@ export default function EditProfile({ params }: { params: Promise<{ slug: string
           try {
             const refreshToken = localStorage.getItem("refresh_token");
             if (refreshToken) {
-              console.log("Refresh token:", refreshToken);
               const refreshResponse = await api.post("/token/refresh/", { refresh: refreshToken });
               localStorage.setItem("token", refreshResponse.data.access);
               console.log("Novo token gerado:", refreshResponse.data.access);
@@ -114,19 +113,21 @@ export default function EditProfile({ params }: { params: Promise<{ slug: string
       formData.append("first_name", data.first_name);
       formData.append("last_name", data.last_name);
       formData.append("email", data.email);
-      formData.append("bio", data.bio);
-      formData.append("link", data.link);
+      formData.append("profile.bio", data.bio);  
+      formData.append("profile.link", data.link);  
       if (data.avatar && data.avatar[0]) {
-        formData.append("avatar", data.avatar[0]);
+        formData.append("profile.avatar", data.avatar[0]);  
       }
       if (data.cover && data.cover[0]) {
-        formData.append("cover", data.cover[0]);
+        formData.append("profile.cover", data.cover[0]);  
+      }
+      if (data.password) {
+        formData.append("password", data.password);
       }
 
-      console.log("Enviando FormData:", [...formData]);
-      const response = await api.patch("/users/me/update-profile/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      console.log("Enviando FormData:", [...formData.entries()]);
+      console.log("Dados do form antes de enviar:", { bio: data.bio });  // Debug
+      const response = await api.patch("/users/me/update-profile/", formData); 
       console.log("Perfil atualizado:", response.data);
       router.push(`/${resolvedParams.slug}`);
     } catch (err: any) {
@@ -135,7 +136,7 @@ export default function EditProfile({ params }: { params: Promise<{ slug: string
         status: err.response?.status,
         data: err.response?.data,
       });
-      setError("Falha ao atualizar o perfil.");
+      setError(err.response?.data?.detail || "Falha ao atualizar o perfil.");
     }
   };
 
@@ -149,7 +150,7 @@ export default function EditProfile({ params }: { params: Promise<{ slug: string
       </GeneralHeader>
       <section className="containerS1">
         <form onSubmit={handleSubmit(onSubmit)} className="edit-profile-form">
-                    <div className="form-group">
+          <div className="form-group">
             <label htmlFor="avatar">Foto de perfil</label>
             <input
               id="avatar"
@@ -182,13 +183,15 @@ export default function EditProfile({ params }: { params: Promise<{ slug: string
             <label htmlFor="password">Senha</label>
             <input
               id="password"
-              {...register("username")}
+              type="password" 
+              {...register("password")} 
               className="containerX4-input"
             />
           </div>
           <div className="form-group">
             <label htmlFor="bio">Bio</label>
-            <textarea style={{ resize: "none" }}
+            <textarea
+              style={{ resize: "none" }}
               id="bio"
               {...register("bio")}
               className="containerX4-input"
@@ -205,7 +208,7 @@ export default function EditProfile({ params }: { params: Promise<{ slug: string
           <Button
             label="Salvar"
             size={2}
-            onClick={handleSubmit(onSubmit)} 
+            onClick={handleSubmit(onSubmit)}
           />
         </form>
       </section>

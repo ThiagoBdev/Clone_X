@@ -3,6 +3,7 @@ import Link from "next/link";
 import "./recommendation.css";
 import { Button } from "./button";
 import { useState } from "react";
+import api from '@/lib/api';
 
 type Props = {
   user: User;
@@ -14,19 +15,21 @@ export const RecommendationItem = ({ user }: Props) => {
   const displayAvatar = user.profile?.avatar || user.avatar || "https://api.dicebear.com/7.x/bottts/png?size=40";
 
   const [following, setFollowing] = useState(false);
-  const handleFollowButton = () => {
-    setFollowing(true);
-  };
 
+  const handleFollowButton = async () => {
+    try {
+      const response = await api.post(`/users/${user.id}/follow/`);
+      setFollowing(response.data.following); // Atualiza o estado baseado na resposta
+    } catch (err) {
+      console.error('Erro ao seguir usuário:', err);
+    }
+  };
 
   return (
     <div className="maincontainer">
       <div className="containerimagem">
         <Link href={`/${displaySlug}`}>
-          <img
-            src={displayAvatar}
-            alt={displayName}
-          />
+          <img src={displayAvatar} alt={displayName} />
         </Link>
       </div>
       <div className="containerfinal">
@@ -39,6 +42,7 @@ export const RecommendationItem = ({ user }: Props) => {
         {!following && (
           <Button label="Seguir" onClick={handleFollowButton} size={3} />
         )}
+        {following && <Button label="Seguindo" disabled size={3} />}
       </div>
     </div>
   );

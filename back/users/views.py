@@ -32,10 +32,22 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['patch'], url_path='me/update-profile', permission_classes=[IsAuthenticated])
     def update_profile(self, request):
         user = request.user
-        serializer = self.get_serializer(user, data=request.data, partial=True)
+        # Extrair dados do profile manualmente
+        profile_data = {}
+        for key, value in request.data.items():
+            if key.startswith('profile.'):
+                nested_key = key.replace('profile.', '', 1)  # Remove o prefixo 'profile.'
+                profile_data[nested_key] = value
+        # Atualizar request.data com os dados do profile
+        request_data = request.data.copy()
+        if profile_data:
+            request_data['profile'] = profile_data
+        
+        serializer = self.get_serializer(user, data=request_data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
+        print("Erros de validação:", serializer.errors)  # Debug
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['get'], url_path='tweets')
@@ -75,6 +87,32 @@ class UserViewSet(viewsets.ModelViewSet):
         queryset = User.objects.exclude(id=exclude_id or current_user_id).order_by('?')[:limit]
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['get'], url_path='followers-count', permission_classes=[IsAuthenticated])
+    def followers_count(self, request, pk=None):
+        user = self.get_object()
+        profile = user.profile
+        followers_count = profile.followers.count()  
+        following_count = profile.following.count()  
+        return Response({
+            'followers_count': followers_count,
+            'following_count': following_count
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='follow', permission_classes=[IsAuthenticated])
+    def follow(self, request, pk=None):
+        target_user = self.get_object()
+        current_user = request.user
+        if current_user.id == target_user.id:
+            return Response({'error': 'Você não pode seguir a si mesmo.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        profile = current_user.profile
+        if target_user.profile in profile.following.all():
+            profile.following.remove(target_user)
+            return Response({'message': 'Usuário deixado de seguir.', 'following': False}, status=status.HTTP_200_OK)
+        else:
+            profile.following.add(target_user)
+            return Response({'message': 'Usuário seguido com sucesso.', 'following': True}, status=status.HTTP_200_OK)
 
 class TweetViewSet(viewsets.ModelViewSet):
     queryset = Tweet.objects.all()
