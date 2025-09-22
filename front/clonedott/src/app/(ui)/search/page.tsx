@@ -25,7 +25,7 @@ export default function Page({ searchParams }: Props) {
     const fetchTweets = async () => {
       try {
         const response = await api.get(`tweets/?search=${encodeURIComponent(searchParams.q || '')}`);
-        setTweets(response.data); // Ajuste conforme a estrutura da resposta da API
+        setTweets(response.data); 
       } catch (err) {
         console.error('Erro ao carregar tweets:', err);
         setError('Falha ao carregar os tweets.');

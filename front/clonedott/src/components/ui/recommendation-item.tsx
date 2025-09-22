@@ -22,15 +22,15 @@ export const RecommendationItem = ({ user }: Props) => {
       const meResponse = await api.get('/users/me/');
       const currentUserId = meResponse.data.id;
       const profileResponse = await api.get(`/users/${currentUserId}/`);
-      const profile = profileResponse.data.profile; // Acessa o profile diretamente
+      const profile = profileResponse.data.profile; 
       if (profile && Array.isArray(profile.following)) {
         setFollowing(profile.following.some((u: User) => u.id === targetUserId));
       } else {
-        setFollowing(false); // Define como false se following não estiver disponível
+        setFollowing(false); 
       }
     } catch (err) {
       console.error('Erro ao verificar status de follow:', err);
-      setFollowing(false); // Fallback em caso de erro
+      setFollowing(false); 
     }
   };
 
@@ -45,7 +45,7 @@ export const RecommendationItem = ({ user }: Props) => {
     if (!following) {
       try {
         const response = await api.post(`/users/${user.id}/follow/`);
-        setFollowing(response.data.following); // Atualiza com base na resposta
+        setFollowing(response.data.following); 
         console.log('Follow realizado, novo status:', response.data.following);
       } catch (err) {
         console.error('Erro ao seguir usuário:', err);

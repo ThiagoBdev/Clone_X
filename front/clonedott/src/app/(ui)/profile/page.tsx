@@ -21,7 +21,7 @@ export default function ProfilePage() {
         const userData = response.data;
         setUser(userData);
 
-        // Redireciona para a página do perfil do usuário
+        
         const slug = userData.profile?.slug || 'default';
         router.push(`/${slug}`);
       } catch (err: any) {
@@ -48,5 +48,5 @@ export default function ProfilePage() {
   if (loading) return <div>Carregando...</div>;
   if (error || !user) return <div>{error || 'Usuário não encontrado.'}</div>;
 
-  return null; // Nunca chega aqui devido ao redirecionamento
+  return null; 
 }

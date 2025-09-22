@@ -130,9 +130,19 @@ class TweetViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         slug = self.request.query_params.get('user__profile__slug', None)
+        user = self.request.user
+
         if slug:
             queryset = queryset.filter(user__profile__slug=slug)
-        return queryset
+        else:
+            # Obtém os usuários que o perfil do usuário autenticado segue
+            following = user.profile.following.all()  # Usa a relação do Profile
+            # Filtra tweets dos usuários seguidos e dos próprios tweets do usuário
+            queryset = queryset.filter(user__in=following).order_by('-created_at')
+            # Adiciona os tweets do próprio usuário
+            queryset = queryset | Tweet.objects.filter(user=user).order_by('-created_at')
+
+        return queryset.distinct()  # Evita duplicatas
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
