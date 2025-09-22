@@ -7,10 +7,11 @@ import { Tweet } from "@/types/tweet";
 import "./profile-feed.css";
 
 interface ProfileFeedProps {
-  slug: string;
+  slug?: string; // Tornamos slug opcional
+  isTimeline?: boolean; // Novo parâmetro para indicar se é a timeline geral
 }
 
-export const ProfileFeed = ({ slug }: ProfileFeedProps) => {
+export const ProfileFeed = ({ slug, isTimeline = false }: ProfileFeedProps) => {
   const [tweets, setTweets] = useState<Tweet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,13 +19,19 @@ export const ProfileFeed = ({ slug }: ProfileFeedProps) => {
   useEffect(() => {
     const fetchTweets = async () => {
       try {
-        if (!slug) {
-          setError("Slug não encontrado.");
+        let response;
+        if (isTimeline && !slug) {
+          // Timeline geral: tweets de usuários seguidos
+          response = await api.get('/tweets/');
+        } else if (slug) {
+          // Tweets de um perfil específico
+          response = await api.get(`/tweets/?user__profile__slug=${slug}`);
+        } else {
+          setError("Nenhum slug ou modo timeline especificado.");
           setLoading(false);
           return;
         }
 
-        const response = await api.get(`/tweets/?user__profile__slug=${slug}`);
         const allTweets = response.data;
         setTweets(allTweets);
       } catch (err: any) {
@@ -33,14 +40,14 @@ export const ProfileFeed = ({ slug }: ProfileFeedProps) => {
           status: err.response?.status,
           data: err.response?.data,
         });
-        setError("Falha ao carregar os tweets do perfil.");
+        setError("Falha ao carregar os tweets.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchTweets();
-  }, [slug]);
+  }, [slug, isTimeline]);
 
   if (loading) return <div style={{ textAlign: "center", marginTop: "10px" }}>Carregando tweets...</div>;
   if (error) return <div>{error}</div>;
