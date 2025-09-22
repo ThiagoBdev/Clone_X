@@ -1,6 +1,20 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Tweet, Profile
+from .models import Tweet, Profile, Comment
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()  # Campo personalizado para o usuário
+    tweet = serializers.PrimaryKeyRelatedField(read_only=True)  # Link para o tweet
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'tweet', 'user', 'text', 'created_at']
+
+    def get_user(self, obj):
+        return {
+            'username': obj.user.username,
+            'slug': obj.user.profile.slug if obj.user.profile else None
+        }
 
 class ProfileSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(required=False, allow_null=True)
@@ -20,21 +34,20 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         bio = validated_data.get('bio', instance.bio)
-        print(f"Atualizando bio: {bio} (tipo: {type(bio)})")  # Debug
+        print(f"Atualizando bio: {bio} (tipo: {type(bio)})")
         instance.bio = bio
         instance.link = validated_data.get('link', instance.link)
         request = self.context.get('request')
         if request and request.FILES:
-            if 'profile.avatar' in request.FILES:  # Ajustado para prefixo
+            if 'profile.avatar' in request.FILES:
                 instance.avatar = request.FILES['profile.avatar']
-            if 'profile.cover' in request.FILES:  # Ajustado para prefixo
+            if 'profile.cover' in request.FILES:
                 instance.cover = request.FILES['profile.cover']
         instance.save()
         return instance
 
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(required=False, partial=True)
-    
 
     class Meta:
         model = User
@@ -49,7 +62,6 @@ class UserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('profile', {})
-        
         instance.username = validated_data.get('username', instance.username)
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
@@ -73,10 +85,9 @@ class UserSerializer(serializers.ModelSerializer):
         representation['last_name'] = str(representation.get('last_name', ''))
         if 'profile' in representation:
             representation['profile']['bio'] = str(representation['profile'].get('bio') or '')
-            representation['profile']['link'] = str(representation['profile'].get('link') or '')  
+            representation['profile']['link'] = str(representation['profile'].get('link') or '')
         else:
-            representation['profile'] = {'bio': '', 'link': ''}  # Inicializa com valores padrão
-        # Adiciona following do profile
+            representation['profile'] = {'bio': '', 'link': ''}
         if hasattr(instance, 'profile') and instance.profile:
             representation['profile']['following'] = [user.id for user in instance.profile.following.all()]
         return representation
@@ -88,10 +99,11 @@ class TweetSerializer(serializers.ModelSerializer):
     comment_count = serializers.SerializerMethodField()
     liked = serializers.SerializerMethodField()
     retweeted = serializers.SerializerMethodField()
+    comments = CommentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Tweet
-        fields = ['id', 'user', 'text', 'image', 'created_at', 'likes_count', 'retweets_count', 'comment_count', 'liked', 'retweeted']
+        fields = ['id', 'user', 'text', 'image', 'created_at', 'likes_count', 'retweets_count', 'comment_count', 'liked', 'retweeted', 'comments']
 
     def get_likes_count(self, obj):
         return obj.likes.count()

@@ -3,8 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
-from .serializers import UserSerializer, TweetSerializer
-from .models import Tweet, Profile
+from .serializers import UserSerializer, TweetSerializer, CommentSerializer
+from .models import Tweet, Profile, Comment
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import generics
 
@@ -123,9 +123,16 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Usuário seguido com sucesso.', 'following': True}, status=status.HTTP_200_OK)
 
 class TweetViewSet(viewsets.ModelViewSet):
-    queryset = Tweet.objects.all()
+    queryset = Tweet.objects.all().prefetch_related('comments')
     serializer_class = TweetSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        slug = self.request.query_params.get('user__profile__slug', None)
+        if slug:
+            queryset = queryset.filter(user__profile__slug=slug)
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -134,28 +141,26 @@ class TweetViewSet(viewsets.ModelViewSet):
     def comment(self, request, pk=None):
         tweet = self.get_object()
         comment_text = request.data.get('text')
-        if comment_text:
-            comment = Tweet.objects.create(user=request.user, text=comment_text)
-            tweet.comments.add(comment)
-            return Response({'message': 'Commented'}, status=status.HTTP_200_OK)
-        return Response({'error': 'Text is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not comment_text:
+            return Response({'error': 'Text is required'}, status=status.HTTP_400_BAD_REQUEST)
+        comment = Comment.objects.create(tweet=tweet, user=request.user, text=comment_text)
+        serializer = CommentSerializer(comment)
+        tweet_serializer = self.get_serializer(tweet)
+        return Response(tweet_serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
         tweet = self.get_object()
-        tweet.likeCount += 1
-        tweet.liked = True
-        tweet.save()
-        return Response({'message': 'Tweet curtido'}, status=status.HTTP_200_OK)
+        tweet.likes.add(request.user)
+        serializer = self.get_serializer(tweet)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'])
     def unlike(self, request, pk=None):
         tweet = self.get_object()
-        if tweet.likeCount > 0:
-            tweet.likeCount -= 1
-        tweet.liked = False
-        tweet.save()
-        return Response({'message': 'Tweet descurtido'}, status=status.HTTP_200_OK)
+        tweet.likes.remove(request.user)
+        serializer = self.get_serializer(tweet)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class UserRecommendationsView(generics.ListAPIView):
     serializer_class = UserSerializer

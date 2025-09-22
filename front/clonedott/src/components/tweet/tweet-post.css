@@ -62,3 +62,63 @@
 .ContainerLargura {
   width: 7rem;              
 }
+
+
+.Containerbotaocoments {
+  margin-left: auto;   
+  width: 7rem;
+}
+
+
+.Containercomentarios2 {
+  background-color: transparent;
+  border: 1px solid #1bb537;
+  display: flex;
+  max-width: 640px;
+  width: 100%;
+  gap: 1.5rem;             
+  padding-top: 1.5rem;     
+  padding-bottom: 1.5rem;
+  margin-top: 30px;
+}
+
+.Containermeuavatar {
+  width: 40px;
+  height: 40px ;
+  border-radius: 50% ;
+  object-fit: cover ;
+  display: block ;
+  margin-top: 5px;
+}
+
+.ContainerDaImagemcoments {
+  display: flex;       
+  align-items: center; 
+}
+
+.comments-section {
+  color: #ffffff;
+  margin-top: 10px;
+  padding: 5px;
+
+}
+.comment-item {
+  margin-bottom: 50px;
+  border: 1px solid #fff
+}
+
+.Coments-containerR1{
+  background-color: transparent;
+  color: #f8f8f8;
+  margin-top: 10px;
+  padding: 5px;
+}
+
+.Coments-container-items{
+  background-color: transparent;
+  padding: 50px;
+  margin-bottom: 50px;
+  border-bottom: 1px solid #5b5f60;
+  border-top: 1px solid #5b5f60;
+}
+
