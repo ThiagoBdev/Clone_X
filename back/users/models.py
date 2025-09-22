@@ -28,13 +28,23 @@ class Tweet(models.Model):
     likeCount = models.IntegerField(default=0)
     liked = models.BooleanField(default=False)
     retweets = models.ManyToManyField(User, related_name='retweeted_tweets', blank=True)
-    comments = models.ManyToManyField('self', symmetrical=False, blank=True, related_name='commented_on')
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.user.username}: {self.text[:50]}"
+
+    
+class Comment(models.Model):
+    tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+    text = models.TextField(max_length=280)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.user.username} em {self.tweet.user.username}: {self.text[:50]}"
+
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):

@@ -1,11 +1,10 @@
-
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import { TweetItem } from "../tweet/tweet-item";
-import api from '@/lib/api';
-import { Tweet } from '@/types/tweet';
-import './profile-feed.css';
+import api from "@/lib/api";
+import { Tweet } from "@/types/tweet";
+import "./profile-feed.css";
 
 interface ProfileFeedProps {
   slug: string;
@@ -20,26 +19,21 @@ export const ProfileFeed = ({ slug }: ProfileFeedProps) => {
     const fetchTweets = async () => {
       try {
         if (!slug) {
-          setError('Slug não encontrado.');
+          setError("Slug não encontrado.");
           setLoading(false);
           return;
         }
 
-        const response = await api.get('/tweets/');
+        const response = await api.get(`/tweets/?user__profile__slug=${slug}`);
         const allTweets = response.data;
-        // Filtra tweets pelo slug do usuário
-        const userTweets = allTweets.filter(
-          (tweet: Tweet) =>
-            tweet.user?.profile?.slug === slug || tweet.user?.username === slug
-        );
-        setTweets(userTweets);
+        setTweets(allTweets);
       } catch (err: any) {
-        console.error('Erro ao carregar tweets do perfil:', {
+        console.error("Erro ao carregar tweets do perfil:", {
           message: err.message,
           status: err.response?.status,
           data: err.response?.data,
         });
-        setError('Falha ao carregar os tweets do perfil.');
+        setError("Falha ao carregar os tweets do perfil.");
       } finally {
         setLoading(false);
       }
@@ -55,7 +49,9 @@ export const ProfileFeed = ({ slug }: ProfileFeedProps) => {
   return (
     <div className="profile-feed">
       {tweets.map((tweet) => (
-        <TweetItem key={tweet.id} tweet={tweet} />
+        <div key={tweet.id}>
+          <TweetItem key={tweet.id} tweet={tweet} />
+        </div>
       ))}
     </div>
   );
