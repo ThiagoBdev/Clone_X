@@ -12,5 +12,6 @@ import os
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
+os.environ['DB_PASSWORD'] = config('DB_PASSWORD')  
 
 application = get_wsgi_application()

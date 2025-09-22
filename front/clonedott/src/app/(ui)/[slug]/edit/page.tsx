@@ -125,8 +125,6 @@ export default function EditProfile({ params }: { params: Promise<{ slug: string
         formData.append("password", data.password);
       }
 
-      console.log("Enviando FormData:", [...formData.entries()]);
-      console.log("Dados do form antes de enviar:", { bio: data.bio });  // Debug
       const response = await api.patch("/users/me/update-profile/", formData); 
       console.log("Perfil atualizado:", response.data);
       router.push(`/${resolvedParams.slug}`);

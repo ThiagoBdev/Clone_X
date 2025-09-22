@@ -17,6 +17,14 @@ export const TweetPost = () => {
   const contentEditableRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  
+  useEffect(() => {
+    if (user) {
+      console.log('User data:', user);
+      console.log('Profile data:', user.profile);
+    }
+  }, [user]);
+
   const handleImageUpload = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -66,6 +74,11 @@ export const TweetPost = () => {
     if (contentEditableRef.current) {
       setContent(contentEditableRef.current.innerText);
     }
+  };
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.error('Erro ao carregar o avatar:', e);
+    e.currentTarget.src = 'https://api.dicebear.com/7.x/bottts/png?size=40'; // Fallback
   };
 
   if (loading) {
@@ -128,8 +141,10 @@ export const TweetPost = () => {
     <div className="ContainerPensando">
       <div>
         <img
-          src={user.profile?.avatar || user.avatar || 'https://api.dicebear.com/7.x/bottts/png?size=40'}
+          src={user.profile?.avatar || 'https://api.dicebear.com/7.x/bottts/png?size=40'}
+          alt={user.username || 'Usuário'}
           className="ContainerEnquadro"
+          onError={handleImageError}
         />
       </div>
       <div className="ContainerSimples">

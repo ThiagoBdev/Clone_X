@@ -7,8 +7,8 @@ import { Tweet } from "@/types/tweet";
 import "./profile-feed.css";
 
 interface ProfileFeedProps {
-  slug?: string; // Tornamos slug opcional
-  isTimeline?: boolean; // Novo parâmetro para indicar se é a timeline geral
+  slug?: string; 
+  isTimeline?: boolean; 
 }
 
 export const ProfileFeed = ({ slug, isTimeline = false }: ProfileFeedProps) => {
@@ -21,10 +21,10 @@ export const ProfileFeed = ({ slug, isTimeline = false }: ProfileFeedProps) => {
       try {
         let response;
         if (isTimeline && !slug) {
-          // Timeline geral: tweets de usuários seguidos
+          
           response = await api.get('/tweets/');
         } else if (slug) {
-          // Tweets de um perfil específico
+          
           response = await api.get(`/tweets/?user__profile__slug=${slug}`);
         } else {
           setError("Nenhum slug ou modo timeline especificado.");

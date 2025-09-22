@@ -14,18 +14,18 @@ export interface User {
 
 export interface Comment {
   id: number;
-  user: User; // Usuário como objeto com username e slug
+  user: User; 
   text: string;
-  created_at: string; // Formato da data (ex: "2025-09-21 18:36")
-  tweet?: number; // ID do tweet, opcional se já inferido pelo contexto
+  created_at: string; 
+  tweet?: number; 
 }
 
 export interface Tweet {
   id: number;
   body: string;
-  text?: string; // Fallback se o backend usar 'text'
+  text?: string; 
   image: string | null;
-  created_at: string; // Alinhado com o formato do backend
+  created_at: string; 
   comment_count: number;
   retweet_count: number;
   likes_count: number;

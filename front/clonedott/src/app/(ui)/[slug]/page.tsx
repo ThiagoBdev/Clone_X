@@ -97,7 +97,7 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
 
         const profileResponse = await api.get(`/users/slug/${resolvedParams.slug}/`);
         const profileUser = profileResponse.data;
-        setUser(profileUser);  // setUser é assíncrono, então user ainda pode ser null aqui
+        setUser(profileUser);  
 
         const meResponse = await api.get("/users/me/");
         const currentUser = meResponse.data;
@@ -112,9 +112,9 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
           resolvedParams.slug
         );
 
-        // Correção: Use uma variável local para extrair o ID e fazer o check
-        if (profileUser && profileUser.id) {  // Type guard: profileUser não é null aqui
-          const userId = profileUser.id;  // TS agora sabe que é number
+        
+        if (profileUser && profileUser.id) {  
+          const userId = profileUser.id;  
           await fetchCounts(userId);
           await checkFollowingStatus(userId);
         } else {
@@ -142,7 +142,7 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
     };
 
     fetchUser();
-  }, [resolvedParams.slug, router]);  // Removi user?.id da dependência pra evitar loops infinitos
+  }, [resolvedParams.slug, router]);  
 
   if (loading) return <div>Carregando...</div>;
   if (error || !user) return <div>{error || "Usuário não encontrado."}</div>;
@@ -176,7 +176,7 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
               <Button
                 label={isFollowing ? "Seguindo" : "Seguir"}
                 size={2}
-                onClick={() => handleFollow(user.id)}  // Aqui também: user não é null porque já checamos no if de cima
+                onClick={() => handleFollow(user.id)}  
                 disabled={isFollowing}
               />
             )}

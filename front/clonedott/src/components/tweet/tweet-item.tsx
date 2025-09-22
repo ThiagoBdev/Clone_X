@@ -20,7 +20,7 @@ type Props = {
 
 export const TweetItem = ({ tweet, hideComments }: Props) => {
   const [liked, setLiked] = useState(tweet.liked || false);
-  const [commentsVisible, setCommentsVisible] = useState(false); // Controle único para comentários e formulário
+  const [commentsVisible, setCommentsVisible] = useState(false); 
   const [content, setContent] = useState("");
   const contentEditableRef = useRef<HTMLDivElement>(null);
   const { user } = useUser();
@@ -85,7 +85,7 @@ export const TweetItem = ({ tweet, hideComments }: Props) => {
     try {
       await api.post(`/tweets/${tweet.id}/comment/`, { text: content });
       setContent("");
-      // Recarrega os comentários após submeter
+      
       const response = await api.get(`/tweets/${tweet.id}/`);
       mappedTweet.comments = response.data.comments || [];
     } catch (err) {

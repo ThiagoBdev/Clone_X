@@ -33,14 +33,14 @@ export const SignupForm = () => {
 
     try {
       setError(null); 
-      // Registro
+      
       const registerResponse = await api.post<RegisterResponse>('/users/register/', {
         username: nameField.trim(),
         email: emailField.trim(),
         password: passwordField.trim(),
       });
 
-      // Obter token
+      
       const tokenResponse = await api.post<TokenResponse>('/token/', {
         username: nameField.trim(),
         password: passwordField.trim(),
