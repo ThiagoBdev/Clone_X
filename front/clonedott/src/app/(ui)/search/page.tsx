@@ -6,14 +6,15 @@ import { GeneralHeader } from "@/components/ui/general-header";
 import { SearchInput } from "@/components/ui/search-input";
 import { redirect } from "next/navigation";
 import api from "@/lib/api";
+import { NextPage } from "next";
 import "./page.css";
 
-// Definindo a interface para as props da página
-interface PageProps {
+// Definindo a interface para as props da página usando NextPage
+interface SearchPageProps {
   searchParams: { [key: string]: string | string[] | undefined };
 }
 
-export default function Page({ searchParams }: PageProps) {
+const Page: NextPage<SearchPageProps> = ({ searchParams }) => {
   const [tweets, setTweets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
