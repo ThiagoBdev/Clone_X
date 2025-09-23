@@ -56,7 +56,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "*",  # Substituir após deploy no Vercel
+    "https://clone-x-three.vercel.app",  
 ]
 
 CORS_ALLOW_METHODS = [
