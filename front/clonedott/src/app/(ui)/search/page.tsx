@@ -8,7 +8,12 @@ import { redirect } from "next/navigation";
 import api from "@/lib/api";
 import "./page.css";
 
-export default function Page({ searchParams }: { searchParams: { q?: string | string[] | undefined } }) {
+// Definindo a interface para as props da página
+interface PageProps {
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
+export default function Page({ searchParams }: PageProps) {
   const [tweets, setTweets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
