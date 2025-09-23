@@ -6,21 +6,14 @@ import { GeneralHeader } from "@/components/ui/general-header";
 import { SearchInput } from "@/components/ui/search-input";
 import { redirect } from "next/navigation";
 import api from "@/lib/api";
-import { NextPage } from "next"; 
 import "./page.css";
 
-
-type SearchPageProps = {
-  searchParams: { [key: string]: string | string[] | undefined };
-};
-
-
-const Page: NextPage<SearchPageProps> = ({ searchParams }) => {
+export default function Page(props: any) {
+  const searchParams = props.searchParams as { [key: string]: string | string[] | undefined };
   const [tweets, setTweets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
- 
   if (!searchParams.q) redirect("/");
 
   useEffect(() => {
