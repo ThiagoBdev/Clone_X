@@ -71,6 +71,7 @@ CORS_ALLOW_METHODS = [
 CORS_ALLOW_HEADERS = [
     "authorization",
     "content-type",
+    "x-csrftoken"
 ]
 
 ROOT_URLCONF = "backend.urls"
