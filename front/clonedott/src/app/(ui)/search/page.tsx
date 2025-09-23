@@ -10,7 +10,7 @@ import "./page.css";
 
 type Props = {
   searchParams: {
-    q: string | undefined;
+    q?: string | undefined;
   };
 };
 
