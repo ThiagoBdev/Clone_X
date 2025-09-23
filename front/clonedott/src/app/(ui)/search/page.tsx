@@ -6,19 +6,21 @@ import { GeneralHeader } from "@/components/ui/general-header";
 import { SearchInput } from "@/components/ui/search-input";
 import { redirect } from "next/navigation";
 import api from "@/lib/api";
+import { NextPage } from "next"; 
 import "./page.css";
 
-// Definindo a interface para as props da página
+
 type SearchPageProps = {
   searchParams: { [key: string]: string | string[] | undefined };
 };
 
-export default function Page({ searchParams }: SearchPageProps) {
+
+const Page: NextPage<SearchPageProps> = ({ searchParams }) => {
   const [tweets, setTweets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Redireciona se não houver searchParams.q
+ 
   if (!searchParams.q) redirect("/");
 
   useEffect(() => {
@@ -34,7 +36,6 @@ export default function Page({ searchParams }: SearchPageProps) {
         setLoading(false);
       }
     };
-    
     fetchTweets();
   }, [searchParams.q]);
 
