@@ -32,7 +32,7 @@ export const SigninForm = ({ onSuccess }: SigninFormProps) => {
 
         try {
             setError(null); 
-            const response = await api.post<TokenResponse>('token/', {
+            const response = await api.post<TokenResponse>('/api/token/', {
                 username: nameField.trim(),
                 password: passwordField.trim(),
             }, {

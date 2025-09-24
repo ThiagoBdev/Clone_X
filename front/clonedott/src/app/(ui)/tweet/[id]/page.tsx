@@ -24,7 +24,7 @@ export default function Page() {
       }
 
       try {
-        const response = await api.get(`tweets/${params.id}/`);
+        const response = await api.get(`/api/tweets/${params.id}/`);
         setTweet(response.data); 
       } catch (err) {
         console.error('Erro ao carregar tweet:', err);

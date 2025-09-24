@@ -49,7 +49,7 @@ export default function EditProfile({ params }: { params: Promise<{ slug: string
         const token = localStorage.getItem("token");
         console.log("Token atual (EditProfile):", token ? "Presente" : "Ausente");
 
-        const meResponse = await api.get("/users/me/");
+        const meResponse = await api.get("/api/users/me/");
         const currentUser = meResponse.data;
         console.log("Usuário carregado:", currentUser);
 
@@ -81,7 +81,7 @@ export default function EditProfile({ params }: { params: Promise<{ slug: string
           try {
             const refreshToken = localStorage.getItem("refresh_token");
             if (refreshToken) {
-              const refreshResponse = await api.post("/token/refresh/", { refresh: refreshToken });
+              const refreshResponse = await api.post("/api/token/refresh/", { refresh: refreshToken });
               localStorage.setItem("token", refreshResponse.data.access);
               console.log("Novo token gerado:", refreshResponse.data.access);
               window.location.reload();
@@ -125,7 +125,7 @@ export default function EditProfile({ params }: { params: Promise<{ slug: string
         formData.append("password", data.password);
       }
 
-      const response = await api.patch("/users/me/update-profile/", formData); 
+      const response = await api.patch("/api/users/me/update-profile/", formData); 
       console.log("Perfil atualizado:", response.data);
       router.push(`/${resolvedParams.slug}`);
     } catch (err: any) {

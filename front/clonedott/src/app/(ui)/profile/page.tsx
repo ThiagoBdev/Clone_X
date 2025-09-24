@@ -17,7 +17,7 @@ export default function ProfilePage() {
         const token = localStorage.getItem('token');
         console.log('Token atual (Profile):', token ? 'Presente' : 'Ausente');
 
-        const response = await api.get('/users/me/');
+        const response = await api.get('/api/users/me/');
         const userData = response.data;
         setUser(userData);
 

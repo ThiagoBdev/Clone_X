@@ -25,7 +25,7 @@ export const HomeMenu = ({ closeAction }: Props) => {
           setUserSlug(null);
           return;
         }
-        const response = await api.get('/users/me/');
+        const response = await api.get('/api/users/me/');
         setUserSlug(response.data.profile?.slug || null);
       } catch (error) {
         console.error('Erro ao carregar slug do usuário:', error);

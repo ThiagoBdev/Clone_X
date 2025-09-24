@@ -20,7 +20,7 @@ export default function Page(props: any) {
     const fetchTweets = async () => {
       try {
         const query = Array.isArray(searchParams.q) ? searchParams.q[0] || "" : searchParams.q || "";
-        const response = await api.get(`tweets/?search=${encodeURIComponent(query)}`);
+        const response = await api.get(`/api/tweets/?search=${encodeURIComponent(query)}`);
         setTweets(response.data);
       } catch (err) {
         console.error("Erro ao carregar tweets:", err);

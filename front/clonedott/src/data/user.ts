@@ -15,7 +15,7 @@ export const useUser = () => {
     const fetchUser = async () => {
       setLoading(true);
       try {
-        const response = await api.get('users/me/');
+        const response = await api.get('/api/users/me/');
         if (isMounted) {
           setUser(response.data);
           setError(null);

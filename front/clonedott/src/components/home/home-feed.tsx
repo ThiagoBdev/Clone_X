@@ -12,7 +12,7 @@ export const HomeFeed = () => {
   useEffect(() => {
     const fetchTweets = async () => {
       try {
-        const response = await api.get('tweets/');
+        const response = await api.get('/api/tweets/');
         setTweets(response.data); 
       } catch (err) {
         console.error('Erro ao carregar tweets:', err);

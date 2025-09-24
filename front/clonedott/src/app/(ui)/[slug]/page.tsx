@@ -28,7 +28,7 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
   const fetchCounts = async (userId: number) => {
     try {
       console.log("Buscando contadores para userId:", userId);
-      const countsResponse = await api.get(`/users/${userId}/followers-count/`);
+      const countsResponse = await api.get(`/api/users/${userId}/followers-count/`);
       console.log("Dados dos contadores:", countsResponse.data);
       setFollowersCount(countsResponse.data.followers_count);
       setFollowingCount(countsResponse.data.following_count);
@@ -39,9 +39,9 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
 
   const checkFollowingStatus = async (targetUserId: number) => {
     try {
-      const meResponse = await api.get("/users/me/");
+      const meResponse = await api.get("/api/users/me/");
       const currentUserId = meResponse.data.id;
-      const profileResponse = await api.get(`/users/${currentUserId}/`);
+      const profileResponse = await api.get(`/api/users/${currentUserId}/`);
       const profile = profileResponse.data.profile;
       if (profile && Array.isArray(profile.following)) {
         const isFollowingNow = profile.following.includes(targetUserId);
@@ -61,7 +61,7 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
     if (!isFollowing) {
       try {
         console.log("Tentando seguir usuário com ID:", userId);
-        const response = await api.post(`/users/${userId}/follow/`);
+        const response = await api.post(`/api/users/${userId}/follow/`);
         console.log("Resposta do follow:", response.data);
         await fetchCounts(userId);
         setIsFollowing(response.data.following);
@@ -75,7 +75,7 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
     } else {
       try {
         console.log("Tentando deixar de seguir usuário com ID:", userId);
-        const response = await api.post(`/users/${userId}/follow/`);
+        const response = await api.post(`/api/users/${userId}/follow/`);
         console.log("Resposta do unfollow:", response.data);
         await fetchCounts(userId);
         setIsFollowing(!response.data.following);
@@ -95,11 +95,11 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
         const token = localStorage.getItem("token");
         console.log("Token atual (Profile):", token ? "Presente" : "Ausente");
 
-        const profileResponse = await api.get(`/users/slug/${resolvedParams.slug}/`);
+        const profileResponse = await api.get(`/api/users/slug/${resolvedParams.slug}/`);
         const profileUser = profileResponse.data;
         setUser(profileUser);  
 
-        const meResponse = await api.get("/users/me/");
+        const meResponse = await api.get("/api/users/me/");
         const currentUser = meResponse.data;
         const isMe = currentUser.profile?.slug === resolvedParams.slug;
         setIsMeState(isMe);

@@ -22,10 +22,10 @@ export const ProfileFeed = ({ slug, isTimeline = false }: ProfileFeedProps) => {
         let response;
         if (isTimeline && !slug) {
           
-          response = await api.get('/tweets/');
+          response = await api.get('/api/tweets/');
         } else if (slug) {
           
-          response = await api.get(`/tweets/?user__profile__slug=${slug}`);
+          response = await api.get(`/api/tweets/?user__profile__slug=${slug}`);
         } else {
           setError("Nenhum slug ou modo timeline especificado.");
           setLoading(false);

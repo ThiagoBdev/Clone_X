@@ -44,7 +44,7 @@ export const RecommendationItem = ({ user }: Props) => {
   const handleFollowButton = async () => {
     if (!following) {
       try {
-        const response = await api.post(`/users/${user.id}/follow/`);
+        const response = await api.post(`/api/users/${user.id}/follow/`);
         setFollowing(response.data.following); 
         console.log('Follow realizado, novo status:', response.data.following);
       } catch (err) {
