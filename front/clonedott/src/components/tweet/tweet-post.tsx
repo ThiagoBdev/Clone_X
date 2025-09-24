@@ -56,7 +56,7 @@ export const TweetPost = () => {
     }
 
     try {
-      await api.post('tweets/', formData, {
+      await api.post('/api/tweets/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setContent('');

@@ -21,7 +21,7 @@ export const RecommendationArea = () => {
       }
 
       try {
-        const response = await api.get(`/users/recommendations/?exclude=${user.id}&limit=5`); 
+        const response = await api.get(`/api/users/recommendations/?exclude=${user.id}&limit=5`); 
         const limitedRecommendations = response.data.slice(0, 3);
         setRecommendations(limitedRecommendations);
       } catch (err) {

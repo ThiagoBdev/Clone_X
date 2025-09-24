@@ -15,7 +15,7 @@ export const NavMyProfile = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await api.get('users/me/');
+        const response = await api.get('/api/users/me/');
         setUser(response.data);
       } catch (error) {
         console.error('Erro ao carregar dados do usuário:', error);

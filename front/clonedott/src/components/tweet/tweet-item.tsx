@@ -57,13 +57,13 @@ export const TweetItem = ({ tweet, hideComments }: Props) => {
       }
 
       if (liked) {
-        await api.post(`/tweets/${tweet.id}/unlike/`);
+        await api.post(`/api/tweets/${tweet.id}/unlike/`);
         setLiked(false);
       } else {
-        await api.post(`/tweets/${tweet.id}/like/`);
+        await api.post(`/api/tweets/${tweet.id}/like/`);
         setLiked(true);
       }
-      const response = await api.get(`/tweets/${tweet.id}/`);
+      const response = await api.get(`/api/tweets/${tweet.id}/`);
       setLiked(response.data.liked);
     } catch (err: any) {
       console.error("Erro ao curtir/descurtir tweet:", {
@@ -83,10 +83,10 @@ export const TweetItem = ({ tweet, hideComments }: Props) => {
   const handleCommentSubmit = async () => {
     if (!content.trim()) return;
     try {
-      await api.post(`/tweets/${tweet.id}/comment/`, { text: content });
+      await api.post(`/api/tweets/${tweet.id}/comment/`, { text: content });
       setContent("");
       
-      const response = await api.get(`/tweets/${tweet.id}/`);
+      const response = await api.get(`/api/tweets/${tweet.id}/`);
       mappedTweet.comments = response.data.comments || [];
     } catch (err) {
       console.error("Erro ao comentar:", err);
