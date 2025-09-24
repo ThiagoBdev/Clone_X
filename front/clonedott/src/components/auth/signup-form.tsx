@@ -26,6 +26,10 @@ export const SignupForm = () => {
   const [error, setError] = useState<string | null>(null);
 
   const handleEnterButton = async () => {
+
+    localStorage.removeItem('token');
+    localStorage.removeItem('refresh_token');
+       
     if (!nameField.trim() || !emailField.trim() || !passwordField.trim()) {
       setError('Nome de usuário, email e senha são obrigatórios.');
       return;

@@ -35,13 +35,13 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['patch'], url_path='me/update-profile', permission_classes=[IsAuthenticated])
     def update_profile(self, request):
         user = request.user
-        # Extrair dados do profile manualmente
+        
         profile_data = {}
         for key, value in request.data.items():
             if key.startswith('profile.'):
-                nested_key = key.replace('profile.', '', 1)  # Remove o prefixo 'profile.'
+                nested_key = key.replace('profile.', '', 1)  
                 profile_data[nested_key] = value
-        # Atualizar request.data com os dados do profile
+        
         request_data = request.data.copy()
         if profile_data:
             request_data['profile'] = profile_data
@@ -135,14 +135,14 @@ class TweetViewSet(viewsets.ModelViewSet):
         if slug:
             queryset = queryset.filter(user__profile__slug=slug)
         else:
-            # Obtém os usuários que o perfil do usuário autenticado segue
-            following = user.profile.following.all()  # Usa a relação do Profile
-            # Filtra tweets dos usuários seguidos e dos próprios tweets do usuário
+            
+            following = user.profile.following.all() 
+            
             queryset = queryset.filter(user__in=following).order_by('-created_at')
-            # Adiciona os tweets do próprio usuário
+            
             queryset = queryset | Tweet.objects.filter(user=user).order_by('-created_at')
 
-        return queryset.distinct()  # Evita duplicatas
+        return queryset.distinct()  
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
