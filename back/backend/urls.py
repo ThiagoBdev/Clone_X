@@ -27,4 +27,6 @@ urlpatterns = [
 
     # Media
     path('media/<path:path>', serve, {'document_root': settings.MEDIA_ROOT}),
+
+    path('', home),  
 ]
