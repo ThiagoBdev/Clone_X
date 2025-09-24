@@ -55,8 +55,10 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
+
 CORS_ALLOWED_ORIGINS = [
-    "https://clone-x-three.vercel.app","http://localhost:3000",
+    "https://clone-x-three.vercel.app", "http://localhost:3000",
 ]
 
 CORS_ALLOW_METHODS = [
@@ -93,8 +95,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
-# Database
-from decouple import config  
+
 
 DATABASES = {
     'default': {
