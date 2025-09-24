@@ -56,7 +56,9 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "https://clone-x-three.vercel.app", "http://localhost:3000",
+    "https://clone-x-three.vercel.app", 
+    "http://localhost:3000",
+    "https://clone-bdanmx7d6-thiagobdevs-projects.vercel.app",
 ]
 
 CORS_ALLOW_METHODS = [
@@ -71,7 +73,13 @@ CORS_ALLOW_METHODS = [
 CORS_ALLOW_HEADERS = [
     "authorization",
     "content-type",
-    "x-csrftoken"
+    "x-csrftoken",
+    "accept",
+    "origin",
+    "user-agent",
+    "accept-encoding",
+    "accept-language",
+
 ]
 
 ROOT_URLCONF = "backend.urls"
